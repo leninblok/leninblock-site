@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Arrow } from "@/components/icons";
-import { kruzhokDownloads, pageMetadata } from "@/content/site";
+import { Arrow, DownloadIcon } from "@/components/icons";
+import { kruzhokDownloads, kruzhokRelease, pageMetadata } from "@/content/site";
 export const metadata = pageMetadata(
   "Кружок — камера поверх окон",
-  "Покажите себя рядом с работой на экране. Кружок выводит камеру поверх окон, а запись вы ведёте в привычной программе.",
+  "Скачайте Кружок для macOS или Windows. Приложение выводит камеру поверх окон, а запись вы ведёте в привычной программе.",
   "/kruzhok",
 );
 export default function Kruzhok() {
@@ -28,7 +28,8 @@ export default function Kruzhok() {
             оставит вас в кадре рядом с тем, о чём вы говорите.
           </p>
           <a className="button button-dark" href="#download">
-            О скачивании <Arrow />
+            {kruzhokDownloads.length ? "Скачать Кружок" : "О скачивании"}{" "}
+            <DownloadIcon />
           </a>
           <p className="fine-print">
             Для macOS и Windows · запись во внешней программе
@@ -136,23 +137,75 @@ export default function Kruzhok() {
         <p className="eyebrow">Скачивание</p>
         <h2 id="download-title">
           {kruzhokDownloads.length
-            ? "Выберите вашу версию"
+            ? "Выберите версию для компьютера"
             : "Версия для скачивания готовится"}
         </h2>
         {kruzhokDownloads.length ? (
-          <div className="download-options">
-            {kruzhokDownloads.map((download) => (
-              <a
-                className="button button-dark"
-                key={download.url}
-                href={download.url}
-              >
-                {download.label}
-                <span>{download.detail}</span>
-                <Arrow external />
+          <>
+            <p className="download-intro">
+              Версия {kruzhokRelease.version} · Бесплатно, без регистрации.
+            </p>
+            <div className="download-options" aria-label="Установщики Кружка">
+              {kruzhokDownloads.map((download) => (
+                <a
+                  className="download-option"
+                  key={download.url}
+                  href={download.url}
+                >
+                  <span className="download-name">{download.label}</span>
+                  <span className="download-detail">{download.detail}</span>
+                  <DownloadIcon />
+                </a>
+              ))}
+            </div>
+            <p className="download-help">
+              Тип процессора Mac указан в меню Apple → «Об этом Mac».
+              Windows-сборка предназначена для компьютеров с процессором x64.
+            </p>
+            <div className="installation-grid">
+              <div>
+                <h3>Установка на Mac</h3>
+                <p>
+                  Откройте DMG и перетащите Кружок в «Программы». Запустите
+                  приложение и разрешите доступ к камере.
+                </p>
+              </div>
+              <div>
+                <h3>Установка на Windows</h3>
+                <p>
+                  Запустите EXE-установщик. После установки откройте Кружок и
+                  разрешите доступ к камере, если система запросит его.
+                </p>
+              </div>
+            </div>
+            <div className="installation-note">
+              <h3>Первый запуск и предупреждения системы</h3>
+              <p>
+                Эта версия без подписи издателя. macOS и Windows могут показать
+                предупреждение безопасности или заблокировать запуск.
+              </p>
+              <p>
+                На Mac после попытки запуска проверьте «Системные настройки» →
+                «Конфиденциальность и безопасность». Если вы доверяете
+                приложению, используйте «Всё равно открыть».{" "}
+                <a href="https://support.apple.com/ru-ru/102445">
+                  Инструкция Apple <Arrow external />
+                </a>
+              </p>
+              <p>
+                На Windows возможно предупреждение SmartScreen о неизвестном
+                издателе.
+              </p>
+            </div>
+            <div className="release-links">
+              <a href={kruzhokRelease.url}>
+                Релиз {kruzhokRelease.version} <Arrow external />
               </a>
-            ))}
-          </div>
+              <a href={kruzhokRelease.checksumsUrl}>
+                Контрольные суммы SHA-256 <DownloadIcon />
+              </a>
+            </div>
+          </>
         ) : (
           <p>
             Кружок рассчитан на macOS и Windows. Установщики пока недоступны для

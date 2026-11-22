@@ -503,10 +503,98 @@ svg {
   color: #555b48;
 }
 .download-options {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  flex-wrap: wrap;
   margin-top: 24px;
+}
+.download-intro,
+.download-help,
+.installation-grid p,
+.installation-note p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #555b48;
+}
+.download-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: center;
+  gap: 8px 16px;
+  min-height: 108px;
+  padding: 20px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  transition: background 0.15s;
+}
+.download-option:hover {
+  background: #454a39;
+}
+.download-name {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.download-detail {
+  grid-row: 2;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.download-option svg {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+}
+.download-help {
+  margin-top: 16px;
+  max-width: 720px;
+}
+.installation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  border-top: 1px solid #d2d8c5;
+  margin-top: 32px;
+  padding-top: 28px;
+}
+.installation-grid h3,
+.installation-note h3 {
+  font-size: 18px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+.installation-note {
+  margin-top: 28px;
+  max-width: 800px;
+}
+.installation-note p + p {
+  margin-top: 12px;
+}
+.installation-note a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.installation-note a svg {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+}
+.release-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  margin-top: 28px;
+  font-size: 13px;
+}
+.release-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .product-outro {
   margin: 48px 0 72px;
@@ -821,6 +909,13 @@ svg {
   .download-panel h2 {
     font-size: 28px;
     line-height: 1.15;
+  }
+  .download-options,
+  .installation-grid {
+    grid-template-columns: 1fr;
+  }
+  .download-option {
+    min-height: 96px;
   }
   .product-outro {
     flex-direction: column;

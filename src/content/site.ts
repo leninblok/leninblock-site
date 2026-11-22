@@ -39,7 +39,29 @@ export function pageMetadata(
 }
 
 // TODO(owner): add a real recording of Kruzhok. Do not substitute a fabricated screenshot.
-// Private release v1.1.0 exists; its assets must not be linked as public downloads.
-// Before adding links: publish approved installers separately, verify signatures and anonymous downloads.
+// Pin downloads to the verified release: asset names include the version.
+// Update URLs, sizes and installation notes together when publishing a new release.
+export const kruzhokRelease = {
+  version: "1.1.0",
+  url: "https://github.com/leninblok/floating-camera/releases/tag/v1.1.0",
+  checksumsUrl:
+    "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/SHA256SUMS",
+};
 export type Download = { label: string; url: string; detail: string };
-export const kruzhokDownloads: readonly Download[] = [];
+export const kruzhokDownloads: readonly Download[] = [
+  {
+    label: "Mac с Apple Silicon",
+    detail: "DMG · 124 МБ",
+    url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-mac-arm64.dmg",
+  },
+  {
+    label: "Mac с Intel",
+    detail: "DMG · 128 МБ",
+    url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-mac-x64.dmg",
+  },
+  {
+    label: "Windows x64",
+    detail: "EXE · 123 МБ",
+    url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-windows-x64-Setup.exe",
+  },
+];

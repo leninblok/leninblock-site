@@ -116,15 +116,33 @@ test("sitemap, robots, icon and absent future pages", async ({
   }
 });
 
-test("navigation and honest product actions", async ({ page }) => {
+test("navigation and public download actions", async ({ page }) => {
   await page.goto("/");
   await page.locator(".camera-card").click();
   await expect(page).toHaveURL(/\/kruzhok$/);
-  await page.getByRole("link", { name: "О скачивании" }).click();
+  await page.getByRole("link", { name: "Скачать Кружок", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Версия для скачивания готовится" }),
+    page.getByRole("heading", { name: "Выберите версию для компьютера" }),
   ).toBeInViewport();
-  await expect(page.locator('a[href*="releases"]')).toHaveCount(0);
+  await expect(page.locator(".download-option")).toHaveCount(3);
+  for (const [label, file] of [
+    ["Mac с Apple Silicon", "Kruzhok-1.1.0-mac-arm64.dmg"],
+    ["Mac с Intel", "Kruzhok-1.1.0-mac-x64.dmg"],
+    ["Windows x64", "Kruzhok-1.1.0-windows-x64-Setup.exe"],
+  ]) {
+    await expect(
+      page.getByRole("link", { name: new RegExp(label) }),
+    ).toHaveAttribute(
+      "href",
+      `https://github.com/leninblok/floating-camera/releases/download/v1.1.0/${file}`,
+    );
+  }
+  await expect(
+    page.getByText("Эта версия без подписи издателя.", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Версия для скачивания готовится", { exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole("link", { name: "Другой проект: Откуда из Библии?" })
     .click();
