@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'none'" />
+  <title>Кружок</title>
+  <style>
+    @property --corner-fraction { syntax: '<number>'; inherits: true; initial-value: 0.5; }
+    @property --corner-exponent { syntax: '<number>'; inherits: true; initial-value: 1; }
+    :root { --shadow-inset: 44px; color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    html, body { width: 100%; height: 100%; margin: 0; background: transparent; overflow: hidden; }
+    body { box-sizing: border-box; padding: var(--shadow-inset); }
+    button { font: inherit; }
+    .camera-shell { position: relative; width: 100%; height: 100%; border-radius: calc(var(--short-side, 0px) * var(--corner-fraction)); corner-shape: superellipse(var(--corner-exponent)); transition: --corner-fraction 160ms cubic-bezier(.2,.8,.2,1), --corner-exponent 160ms ease; }
+    .camera-shell::before { content: ""; position: absolute; inset: 0; border-radius: inherit; corner-shape: inherit; box-shadow: 0 10px 28px rgba(0, 0, 0, .38), 0 2px 8px rgba(0, 0, 0, .22); opacity: 0; pointer-events: none; transition: opacity 120ms ease; }
+    body.shadow-enabled:not(.native-shadow) .camera-shell::before { opacity: 1; }
+    .circle { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; corner-shape: inherit; background: #080808; cursor: grab; user-select: none; touch-action: none; contain: layout paint; }
+    /* Draw the border above the video without changing its crop or geometry. */
+    .circle::after { content: ""; position: absolute; z-index: 3; inset: 0; box-sizing: border-box; border: var(--border-width, 3px) solid #fff; border-radius: inherit; corner-shape: inherit; pointer-events: none; opacity: 0; transition: opacity 110ms ease, border-width 110ms ease; }
+    body.border-enabled .circle::after { opacity: 1; }
+    .circle:active { cursor: grabbing; }
+    .circle.locked { cursor: default; }
+    video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: 0; transition: opacity 100ms ease; }
+    body.has-video video { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      .camera-shell, .camera-shell::before, .circle::after, video { transition: none !important; }
+    }
+    video.mirror { transform: scaleX(-1); }
+    .scrim { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(transparent 55%, rgba(0, 0, 0, .32)); }
+    .error[hidden] { display: none; }
+    .error { position: absolute; z-index: 2; inset: auto 10px 10px; display: grid; gap: 7px; padding: 9px; border-radius: 10px; background: rgba(118, 20, 20, .94); color: #fff; font-size: 12px; line-height: 1.3; cursor: default; }
+    .error-actions { display: flex; gap: 6px; }
+    .error button { flex: 1; border: 1px solid rgba(255,255,255,.35); border-radius: 6px; background: rgba(0,0,0,.24); color: #fff; padding: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="cameraShell" class="camera-shell">
+    <main id="circle" class="circle" aria-label="Плавающее окно камеры">
+      <video id="cam" autoplay playsinline muted aria-label="Видео с камеры"></video>
+      <div class="scrim"></div>
+      <aside id="err" class="error" hidden aria-live="assertive">
+        <span id="errText"></span>
+        <div class="error-actions">
+          <button id="retryButton" type="button">Повторить</button>
+          <button id="privacyButton" type="button" hidden>Доступ к камере</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <script src="native-layout.js"></script>
+  <script src="browser-preload.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

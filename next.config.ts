@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: "/kruzhok/runtime/:path*",
+        headers: [{ key: "X-Frame-Options", value: "SAMEORIGIN" }],
+      },
     ];
   },
 };

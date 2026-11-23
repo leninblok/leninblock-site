@@ -23,8 +23,7 @@ export default function Kruzhok() {
           <span>ленинблок.</span>
         </Link>
       </header>
-      <section className="kruzhok-hero" aria-labelledby="kruzhok-title">
-        <CameraDemo />
+      <CameraDemo>
         <h1 id="kruzhok-title">Кружок</h1>
         <p className="kruzhok-tagline">
           Камера поверх окон.
@@ -32,7 +31,7 @@ export default function Kruzhok() {
           Для видеообъяснений.
         </p>
         <DownloadPicker />
-      </section>
+      </CameraDemo>
     </main>
   );
 }

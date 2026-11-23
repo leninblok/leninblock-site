@@ -10,5 +10,7 @@ export default defineConfig([
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",
+    "public/kruzhok/runtime/renderer.js",
+    "public/kruzhok/runtime/native-layout.js",
   ]),
 ]);

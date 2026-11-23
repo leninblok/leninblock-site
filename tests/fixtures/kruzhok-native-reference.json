@@ -1,0 +1,491 @@
+{
+  "source": "floating-camera v1.1.0, complete main.js executed in its own original test harness",
+  "profiles": [
+    {
+      "width": 1440,
+      "height": 900,
+      "cases": [
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 246,
+          "height": 246
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 331,
+          "height": 331
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "large",
+          "label": "Большой",
+          "width": 417,
+          "height": 417
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "very-large",
+          "label": "Очень большой",
+          "width": 503,
+          "height": 503
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 260,
+          "height": 260
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 353,
+          "height": 353
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "large",
+          "label": "Большой",
+          "width": 447,
+          "height": 447
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "very-large",
+          "label": "Очень большой",
+          "width": 540,
+          "height": 540
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 238,
+          "height": 275
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 306,
+          "height": 361
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "large",
+          "label": "Большой",
+          "width": 375,
+          "height": 447
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 255,
+          "height": 384
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 342,
+          "height": 540
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "large",
+          "label": "Большой",
+          "width": 430,
+          "height": 696
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "cases": [
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 285,
+          "height": 285
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 393,
+          "height": 393
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "large",
+          "label": "Большой",
+          "width": 500,
+          "height": 500
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "very-large",
+          "label": "Очень большой",
+          "width": 608,
+          "height": 608
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 299,
+          "height": 299
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 414,
+          "height": 414
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "large",
+          "label": "Большой",
+          "width": 530,
+          "height": 530
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "very-large",
+          "label": "Очень большой",
+          "width": 645,
+          "height": 645
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 272,
+          "height": 318
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 357,
+          "height": 424
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "large",
+          "label": "Большой",
+          "width": 442,
+          "height": 530
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 293,
+          "height": 453
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 401,
+          "height": 645
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "large",
+          "label": "Большой",
+          "width": 509,
+          "height": 837
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "cases": [
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 188,
+          "height": 188
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 188,
+          "height": 188
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "large",
+          "label": "Большой",
+          "width": 205,
+          "height": 205
+        },
+        {
+          "shape": "circle",
+          "aspect": "1:1",
+          "preset": "very-large",
+          "label": "Очень большой",
+          "width": 235,
+          "height": 235
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 188,
+          "height": 188
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 188,
+          "height": 188
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "large",
+          "label": "Большой",
+          "width": 205,
+          "height": 205
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "1:1",
+          "preset": "very-large",
+          "label": "Очень большой",
+          "width": 235,
+          "height": 235
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 168,
+          "height": 188
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 177,
+          "height": 199
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "4:5",
+          "preset": "large",
+          "label": "Большой",
+          "width": 205,
+          "height": 234
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "compact",
+          "label": "Компактный",
+          "width": 185,
+          "height": 260
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "normal",
+          "label": "Обычный",
+          "width": 235,
+          "height": 350
+        },
+        {
+          "shape": "rectangle",
+          "aspect": "9:16",
+          "preset": "large",
+          "label": "Большой",
+          "width": 286,
+          "height": 440
+        }
+      ]
+    }
+  ],
+  "animation": [
+    {
+      "timestamp": 0,
+      "more": true,
+      "bounds": {
+        "x": 700,
+        "y": 250,
+        "width": 250,
+        "height": 250
+      }
+    },
+    {
+      "timestamp": 16,
+      "more": true,
+      "bounds": {
+        "x": 699,
+        "y": 249,
+        "width": 252,
+        "height": 252
+      }
+    },
+    {
+      "timestamp": 32,
+      "more": true,
+      "bounds": {
+        "x": 697,
+        "y": 247,
+        "width": 257,
+        "height": 257
+      }
+    },
+    {
+      "timestamp": 120,
+      "more": true,
+      "bounds": {
+        "x": 692,
+        "y": 242,
+        "width": 266,
+        "height": 266
+      }
+    },
+    {
+      "timestamp": 136,
+      "more": true,
+      "bounds": {
+        "x": 687,
+        "y": 237,
+        "width": 276,
+        "height": 276
+      }
+    },
+    {
+      "timestamp": 136,
+      "more": true,
+      "bounds": {
+        "x": 687,
+        "y": 237,
+        "width": 276,
+        "height": 276
+      }
+    },
+    {
+      "timestamp": 152,
+      "more": true,
+      "bounds": {
+        "x": 682,
+        "y": 232,
+        "width": 286,
+        "height": 286
+      }
+    },
+    {
+      "timestamp": 168,
+      "more": true,
+      "bounds": {
+        "x": 677,
+        "y": 227,
+        "width": 297,
+        "height": 297
+      }
+    },
+    {
+      "timestamp": 184,
+      "more": true,
+      "bounds": {
+        "x": 672,
+        "y": 222,
+        "width": 308,
+        "height": 308
+      }
+    },
+    {
+      "timestamp": 200,
+      "more": true,
+      "bounds": {
+        "x": 667,
+        "y": 217,
+        "width": 317,
+        "height": 317
+      }
+    },
+    {
+      "timestamp": 216,
+      "more": true,
+      "bounds": {
+        "x": 663,
+        "y": 213,
+        "width": 324,
+        "height": 324
+      }
+    },
+    {
+      "timestamp": 232,
+      "more": true,
+      "bounds": {
+        "x": 661,
+        "y": 211,
+        "width": 329,
+        "height": 329
+      }
+    },
+    {
+      "timestamp": 248,
+      "more": false,
+      "bounds": {
+        "x": 660,
+        "y": 210,
+        "width": 331,
+        "height": 331
+      }
+    }
+  ]
+}

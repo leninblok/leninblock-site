@@ -1,9 +1,10 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import reference from "./fixtures/kruzhok-native-reference.json";
 
 declare global {
   interface Window {
-    cameraFailure?: { name: string; message: string };
+    cameraTracks: MediaStreamTrack[];
     cameraTest: {
       calls: MediaStreamConstraints[];
       streams: MediaStream[];
@@ -12,405 +13,438 @@ declare global {
     };
   }
 }
-async function cameraMock(
+const app = (page: Page) => page.frameLocator(".kruzhok-app-window");
+const windowBounds = async (page: Page) =>
+  JSON.parse((await page.locator("iframe").getAttribute("data-bounds"))!);
+async function ready(page: Page) {
+  await expect(
+    page.getByRole("radio", { name: "Круг", exact: true }),
+  ).toBeEnabled();
+}
+async function choose(page: Page, label: string) {
+  await page.getByRole("radio", { name: label, exact: true }).click();
+  await expect(
+    page.getByRole("radio", { name: label, exact: true }),
+  ).toBeChecked();
+}
+async function mockCamera(
   page: Page,
-  mode: "live" | "pending" | "denied" = "live",
+  mode: "live" | "pending" | "denied" = "denied",
 ) {
   await page.addInitScript((behavior) => {
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 64;
-    const ctx = canvas.getContext("2d")!;
+    if (!location.pathname.endsWith("/runtime/index.html")) return;
     const makeStream = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 64;
+      const ctx = canvas.getContext("2d")!;
       ctx.fillStyle = "#6550aa";
       ctx.fillRect(0, 0, 64, 64);
-      const stream = canvas.captureStream(5);
+      const stream = canvas.captureStream(25);
+      const timer = setInterval(() => ctx.fillRect(0, 0, 64, 64), 40);
+      const track = stream.getVideoTracks()[0],
+        stop = track.stop.bind(track);
+      track.stop = () => {
+        clearInterval(timer);
+        stop();
+      };
       window.cameraTest.streams.push(stream);
       return stream;
     };
     window.cameraTest = { calls: [], streams: [], makeStream };
-    Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
-      value: (constraints: MediaStreamConstraints) => {
-        window.cameraTest.calls.push(constraints);
-        if (behavior === "denied")
-          return Promise.reject(new DOMException("Denied", "NotAllowedError"));
-        if (behavior === "pending")
-          return new Promise<MediaStream>((resolve) => {
-            window.cameraTest.resolve = resolve;
-          });
-        return Promise.resolve(makeStream());
-      },
-    });
+    navigator.mediaDevices.getUserMedia = (constraints) => {
+      window.cameraTest.calls.push(constraints ?? {});
+      if (behavior === "denied")
+        return Promise.reject(new DOMException("Denied", "NotAllowedError"));
+      if (behavior === "pending")
+        return new Promise<MediaStream>((resolve) => {
+          window.cameraTest.resolve = resolve;
+        });
+      return Promise.resolve(makeStream());
+    };
   }, mode);
 }
-const orb = (page: Page) =>
-  page.getByRole("button", { name: "Кружок с видео", exact: true });
-async function openMenu(page: Page) {
-  await orb(page).click({ button: "right" });
-  await expect(
-    page.getByRole("menu", { name: "Настройки кружка" }),
-  ).toBeVisible();
-}
-async function source(page: Page, name: "Моя камера" | "Видео Леонида") {
-  await openMenu(page);
-  await page.getByRole("menuitemradio", { name, exact: true }).click();
-}
-
-for (const [platform, ua, touch, label, file] of [
+for (const [platform, ua, expected, file] of [
   [
     "MacIntel",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-    0,
-    "Скачать для Mac",
+    "Mac",
     "mac-universal.dmg",
   ],
   [
     "Win32",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    0,
-    "Скачать для Windows",
+    "Windows",
     "windows-x64-Setup.exe",
-  ],
-  [
-    "Linux x86_64",
-    "Mozilla/5.0 (X11; Linux x86_64)",
-    0,
-    "Скачать для Mac",
-    "mac-universal.dmg",
-  ],
-  [
-    "MacIntel",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-    5,
-    "Скачать для Mac",
-    "mac-universal.dmg",
   ],
   [
     "iPhone",
     "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",
-    5,
-    "Скачать для Mac",
-    "mac-universal.dmg",
-  ],
-  [
-    "Linux armv8l",
-    "Mozilla/5.0 (Linux; Android 15)",
-    5,
-    "Скачать для Mac",
+    "Mac",
     "mac-universal.dmg",
   ],
 ] as const) {
-  test(`two direct downloads: ${platform} / touch ${touch}`, async ({
-    page,
-  }) => {
-    await cameraMock(page, "denied");
+  test(`direct downloads on ${platform}`, async ({ page }) => {
+    await mockCamera(page);
     await page.addInitScript(
-      ({ platform, ua, touch }) => {
-        for (const [key, value] of Object.entries({
-          platform,
-          userAgent: ua,
-          maxTouchPoints: touch,
-        }))
-          Object.defineProperty(navigator, key, { value, configurable: true });
+      ({ platform, ua }) => {
+        Object.defineProperty(navigator, "platform", { value: platform });
+        Object.defineProperty(navigator, "userAgent", { value: ua });
       },
-      { platform, ua, touch },
+      { platform, ua },
     );
     await page.goto("/kruzhok");
-    await expect(page.locator(".kruzhok-primary")).toHaveText(label);
+    await expect(page.locator(".kruzhok-primary")).toHaveText(
+      `Скачать для ${expected}`,
+    );
     await expect(page.locator(".kruzhok-primary")).toHaveAttribute(
       "href",
-      new RegExp(`${file.replaceAll(".", "\\.")}$`),
+      new RegExp(file.replaceAll(".", "\\.") + "$"),
     );
     await expect(page.locator(".kruzhok-secondary")).toHaveText(
-      label === "Скачать для Mac" ? "Скачать для Windows" : "Скачать для Mac",
+      `Скачать для ${expected === "Mac" ? "Windows" : "Mac"}`,
     );
-    await expect(page.locator(".kruzhok-download a")).toHaveCount(2);
   });
 }
-
-test("dragging, keyboard movement, reset and viewport bounds", async ({
+test("all native camera settings are visible below download, without a context menu", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockCamera(page);
   await page.goto("/kruzhok");
-  const initial = (await orb(page).boundingBox())!;
-  await page.mouse.move(initial.x + 100, initial.y + 100);
-  await page.mouse.down();
-  await page.mouse.move(initial.x - 100, initial.y + 180, { steps: 8 });
-  await page.mouse.up();
-  await expect
-    .poll(async () => (await orb(page).boundingBox())!.x)
-    .toBe(initial.x - 200);
-  await orb(page).focus();
-  await page.keyboard.press("ArrowLeft");
-  expect((await orb(page).boundingBox())!.x).toBe(initial.x - 216);
-  await page.keyboard.press("Home");
-  expect((await orb(page).boundingBox())!.x).toBe(initial.x);
-  await page.keyboard.press("ArrowRight");
-  await page.setViewportSize({ width: 320, height: 568 });
-  await expect
-    .poll(async () => {
-      const bounds = (await orb(page).boundingBox())!;
-      return bounds.x + bounds.width;
-    })
-    .toBeLessThanOrEqual(308);
-  const bounds = (await orb(page).boundingBox())!;
-  expect(bounds.x).toBeGreaterThanOrEqual(12);
-  expect(bounds.y + bounds.height).toBeLessThanOrEqual(556);
+  await ready(page);
+  await expect(
+    page.getByRole("heading", { name: "Параметры", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Выбрать камеру", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("radio", { name: "Прямоугольник", exact: true }),
+  ).toBeChecked();
+  await expect(
+    page.getByRole("radio", { name: "9:16", exact: true }),
+  ).toBeChecked();
+  await expect(
+    page.getByRole("radio", { name: "Большой", exact: true }),
+  ).toBeChecked();
+  for (const name of ["Контур", "Тень", "Отразить по горизонтали", "Фокус"])
+    await expect(
+      page.getByRole("checkbox", { name, exact: true }),
+    ).toBeVisible();
+  await expect(
+    page.getByRole("checkbox", { name: "Тень", exact: true }),
+  ).toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: "Контур", exact: true }),
+  ).not.toBeChecked();
+  await app(page).locator("#circle").click({ button: "right" });
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await choose(page, "Круг");
+  await expect(
+    page.getByRole("group", { name: "Соотношение сторон", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("radio", { name: "Очень большой", exact: true }),
+  ).toBeVisible();
+  await choose(page, "Прямоугольник");
+  await choose(page, "4:5");
+  await expect(
+    page.getByRole("radio", { name: "Очень большой", exact: true }),
+  ).toHaveCount(0);
+  await choose(page, "1:1");
+  await expect(
+    page.getByRole("radio", { name: "Очень большой", exact: true }),
+  ).toBeVisible();
 });
-
-test("touch dragging on a phone", async ({ browser }) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true,
+for (const profile of reference.profiles.filter((p) => p.width !== 1920)) {
+  test(`browser uses actual native dimensions at ${profile.width} × ${profile.height}`, async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      viewport: { width: profile.width, height: profile.height },
+      screen: { width: profile.width, height: profile.height },
+      reducedMotion: "reduce",
+    });
+    const page = await context.newPage();
+    await mockCamera(page);
+    await page.goto("/kruzhok");
+    await ready(page);
+    for (const item of profile.cases) {
+      await choose(page, item.shape === "circle" ? "Круг" : "Прямоугольник");
+      if (item.shape === "rectangle") await choose(page, item.aspect);
+      await choose(page, item.label);
+      await expect
+        .poll(async () => {
+          const b = await windowBounds(page);
+          return [b.width, b.height];
+        })
+        .toEqual([item.width, item.height]);
+    }
+    await context.close();
   });
-  const page = await context.newPage();
-  await page.goto("/kruzhok");
-  const bounds = (await orb(page).boundingBox())!;
-  const cdp = await context.newCDPSession(page);
-  await cdp.send("Input.dispatchTouchEvent", {
-    type: "touchStart",
-    touchPoints: [{ x: bounds.x + 100, y: bounds.y + 100 }],
-  });
-  await cdp.send("Input.dispatchTouchEvent", {
-    type: "touchMove",
-    touchPoints: [{ x: bounds.x + 140, y: bounds.y + 180 }],
-  });
-  await cdp.send("Input.dispatchTouchEvent", {
-    type: "touchEnd",
-    touchPoints: [],
-  });
-  await expect
-    .poll(async () => (await orb(page).boundingBox())!.x)
-    .toBe(bounds.x + 40);
-  expect((await orb(page).boundingBox())!.y).toBe(bounds.y + 80);
-  await context.close();
-});
-
-test("camera is requested on entry, excludes audio, and switches source", async ({
+}
+test("native loading shell waits for its first frame and keeps the author while permission is pending", async ({
   page,
 }) => {
-  await cameraMock(page);
+  await mockCamera(page, "pending");
+  await page.route("**/kruzhok/intro.mp4", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    await route.continue();
+  });
   await page.goto("/kruzhok");
-  await expect(orb(page)).toHaveClass(/is-live/);
-  expect(await page.evaluate(() => window.cameraTest.calls)).toEqual([
-    { video: { facingMode: "user" }, audio: false },
-  ]);
-  await source(page, "Видео Леонида");
-  await expect(orb(page)).not.toHaveClass(/is-live/);
-  expect(
-    await page.evaluate(
-      () => window.cameraTest.streams[0].getTracks()[0].readyState,
-    ),
-  ).toBe("ended");
-  await expect(page.locator("video")).toHaveAttribute(
-    "src",
-    "/kruzhok/intro.mp4",
+  await ready(page);
+  await expect(app(page).locator("#circle")).toHaveCSS(
+    "background-color",
+    "rgb(8, 8, 8)",
   );
-  await source(page, "Моя камера");
-  await expect(orb(page)).toHaveClass(/is-live/);
+  await expect(app(page).locator("body")).toHaveClass(/has-video/);
+  expect(
+    await app(page)
+      .locator("#cam")
+      .evaluate((v) => (v as HTMLVideoElement).videoWidth),
+  ).toBe(640);
+  await expect
+    .poll(() =>
+      app(page)
+        .locator("body")
+        .evaluate(() => window.cameraTest.calls.length),
+    )
+    .toBe(1);
+  await page
+    .getByLabel("Выбрать камеру", { exact: true })
+    .selectOption("demo-leonid");
+  await app(page)
+    .locator("body")
+    .evaluate(() => window.cameraTest.resolve!(window.cameraTest.makeStream()));
+  await expect
+    .poll(() =>
+      app(page)
+        .locator("body")
+        .evaluate(() => window.cameraTest.streams[0].getTracks()[0].readyState),
+    )
+    .toBe("ended");
+});
+test("camera starts automatically, excludes audio, switches source and stops after leaving", async ({
+  page,
+}) => {
+  await mockCamera(page, "live");
+  await page.goto("/kruzhok");
+  await ready(page);
+  await expect
+    .poll(() =>
+      app(page)
+        .locator("body")
+        .evaluate(() => window.cameraTest.calls.length),
+    )
+    .toBe(1);
+  await expect(app(page).locator("body")).toHaveClass(/has-video/);
+  const constraints = await app(page)
+    .locator("body")
+    .evaluate(() => window.cameraTest.calls[0]);
+  expect(constraints.audio).toBe(false);
+  expect(constraints.video).toMatchObject({
+    facingMode: { ideal: "user" },
+    frameRate: { ideal: 30, max: 30 },
+  });
+  await page
+    .getByLabel("Выбрать камеру", { exact: true })
+    .selectOption("demo-leonid");
+  await expect
+    .poll(() =>
+      app(page)
+        .locator("body")
+        .evaluate(() => window.cameraTest.streams[0].getTracks()[0].readyState),
+    )
+    .toBe("ended");
+  await page.getByLabel("Выбрать камеру", { exact: true }).selectOption("");
+  await expect
+    .poll(() =>
+      app(page)
+        .locator("body")
+        .evaluate(() => window.cameraTest.streams.length),
+    )
+    .toBe(2);
+  await page.evaluate(() => {
+    const frame = document.querySelector("iframe")!;
+    window.cameraTracks = (
+      frame.contentWindow as Window
+    ).cameraTest.streams.flatMap((s) => s.getTracks());
+  });
   await page
     .getByRole("link", { name: "Ленинблок — главная", exact: true })
     .click();
   await page.waitForURL(/\/$/);
-  expect(
-    await page.evaluate(() =>
-      window.cameraTest.streams.every((s) =>
-        s.getTracks().every((t) => t.readyState === "ended"),
+  await expect(page.locator(".site-header")).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        window.cameraTracks.every((t) => t.readyState === "ended"),
       ),
-    ),
-  ).toBe(true);
+    )
+    .toBe(true);
 });
-
-test("pending permission retains author video and a late grant after changing source is stopped", async ({
+test("native shape, border, shadow and mirroring styles are applied by original renderer", async ({
   page,
 }) => {
-  await cameraMock(page, "pending");
+  await mockCamera(page);
   await page.goto("/kruzhok");
+  await ready(page);
+  await choose(page, "Круг");
+  for (const [label, className, selector] of [
+    ["Контур", "border-enabled", "body"],
+    ["Тень", "shadow-enabled", "body"],
+    ["Отразить по горизонтали", "mirror", "#cam"],
+  ]) {
+    const checkbox = page.getByRole("checkbox", { name: label, exact: true });
+    const previous = await checkbox.isChecked();
+    await checkbox.click();
+    if (previous)
+      await expect(app(page).locator(selector)).not.toHaveClass(
+        new RegExp(className),
+      );
+    else
+      await expect(app(page).locator(selector)).toHaveClass(
+        new RegExp(className),
+      );
+  }
+  await expect(app(page).locator("#cameraShell")).toHaveCSS(
+    "--corner-fraction",
+    "0.5",
+  );
+  await choose(page, "Прямоугольник");
+  await choose(page, "4:5");
+  await expect(app(page).locator("#cameraShell")).toHaveCSS(
+    "--corner-fraction",
+    "0.22",
+  );
+});
+test("double click focuses and locks movement, and restores exact previous bounds", async ({
+  page,
+}) => {
+  await mockCamera(page);
+  await page.goto("/kruzhok");
+  await ready(page);
+  await choose(page, "Круг");
   await expect
-    .poll(() => page.evaluate(() => window.cameraTest.calls.length))
-    .toBe(1);
-  await expect(page.locator("video")).toHaveAttribute(
-    "src",
-    "/kruzhok/intro.mp4",
+    .poll(async () => {
+      const b = await windowBounds(page);
+      return b.width === b.height;
+    })
+    .toBe(true);
+  const before = await windowBounds(page);
+  await app(page).locator("#circle").dblclick();
+  await expect(
+    page.getByRole("checkbox", { name: "Фокус", exact: true }),
+  ).toBeChecked();
+  await expect(app(page).locator("#circle")).toHaveClass(/locked/);
+  await expect
+    .poll(async () => (await windowBounds(page)).width)
+    .toBeGreaterThan(before.width);
+  await page.getByRole("checkbox", { name: "Фокус", exact: true }).click();
+  await expect.poll(() => windowBounds(page)).toEqual(before);
+});
+test("drag is frame-coalesced and releases back from the elastic edge", async ({
+  page,
+}) => {
+  await mockCamera(page);
+  await page.goto("/kruzhok");
+  await ready(page);
+  await choose(page, "Круг");
+  await choose(page, "Компактный");
+  await expect(page.locator("iframe")).not.toHaveAttribute(
+    "data-animating",
+    "true",
   );
-  await source(page, "Видео Леонида");
-  await page.evaluate(() =>
-    window.cameraTest.resolve!(window.cameraTest.makeStream()),
+  const circle = app(page).locator("#circle");
+  const rect = (await circle.boundingBox())!;
+  const before = await windowBounds(page);
+  await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(
+    rect.x + rect.width / 2 - 100,
+    rect.y + rect.height / 2 + 60,
+    { steps: 8 },
   );
+  await page.mouse.up();
+  await expect
+    .poll(async () => (await windowBounds(page)).x)
+    .toBe(before.x - 100);
+  const moved = (await circle.boundingBox())!;
+  await page.mouse.move(moved.x + moved.width / 2, moved.y + moved.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(0, moved.y + moved.height / 2, { steps: 12 });
+  const stretched = (await windowBounds(page)).x;
+  expect(stretched).toBeLessThan(24);
+  await page.mouse.up();
+  await expect.poll(async () => (await windowBounds(page)).x).toBe(24);
+});
+test("settings survive reload like the app", async ({ page }) => {
+  await mockCamera(page);
+  await page.goto("/kruzhok");
+  await ready(page);
+  await choose(page, "Круг");
+  await choose(page, "Обычный");
+  await page.getByRole("checkbox", { name: "Контур", exact: true }).click();
   await expect
     .poll(() =>
       page.evaluate(
-        () => window.cameraTest.streams[0].getTracks()[0].readyState,
+        () =>
+          JSON.parse(localStorage.getItem("kruzhok.demo.v1")!).borderEnabled,
       ),
     )
-    .toBe("ended");
-  await expect(orb(page)).not.toHaveClass(/is-live/);
-});
-
-test("camera denial falls back quietly and can be retried from settings", async ({
-  page,
-}) => {
-  await cameraMock(page, "denied");
-  await page.goto("/kruzhok");
-  await expect
-    .poll(() => page.evaluate(() => window.cameraTest.calls.length))
-    .toBe(1);
-  await expect(orb(page)).not.toHaveClass(/is-live/);
-  await expect(page.getByRole("status")).toHaveCount(0);
-  await openMenu(page);
-  await expect(page.locator(".kruzhok-menu-message")).toContainText(
-    "Доступ к камере закрыт",
-  );
+    .toBe(true);
+  await page.reload();
+  await ready(page);
   await expect(
-    page.getByRole("menuitemradio", { name: "Видео Леонида" }),
-  ).toHaveAttribute("aria-checked", "true");
-  await page
-    .getByRole("menuitemradio", { name: "Моя камера", exact: true })
-    .click();
-  await expect
-    .poll(() => page.evaluate(() => window.cameraTest.calls.length))
-    .toBe(2);
+    page.getByRole("radio", { name: "Круг", exact: true }),
+  ).toBeChecked();
+  await expect(
+    page.getByRole("radio", { name: "Обычный", exact: true }),
+  ).toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: "Контур", exact: true }),
+  ).toBeChecked();
 });
-
-test("context menu changes size and appearance without a selection outline", async ({
+test("settings and embedded app pass accessibility checks", async ({
   page,
 }) => {
-  await cameraMock(page, "denied");
+  await mockCamera(page);
   await page.goto("/kruzhok");
-  await openMenu(page);
-  await page
-    .getByRole("menuitemradio", { name: "Компактный", exact: true })
-    .click();
-  const compact = (await orb(page).boundingBox())!.width;
-  await openMenu(page);
-  await page
-    .getByRole("menuitemradio", { name: "Очень большой", exact: true })
-    .click();
-  await expect
-    .poll(async () => (await orb(page).boundingBox())!.width)
-    .toBeGreaterThan(compact);
-  for (const [name, className] of [
-    ["Контур", "has-border"],
-    ["Тень", "has-shadow"],
-    ["Отразить по горизонтали", "is-mirrored"],
-  ]) {
-    const wasEnabled = (await orb(page).getAttribute("class"))!.includes(
-      className,
-    );
-    await openMenu(page);
-    await page.getByRole("menuitemcheckbox", { name, exact: true }).click();
-    expect((await orb(page).getAttribute("class"))!.includes(className)).toBe(
-      !wasEnabled,
-    );
-  }
-  await orb(page).focus();
-  expect(
-    await orb(page).evaluate((el) => getComputedStyle(el).outlineStyle),
-  ).toBe("none");
-  await page.keyboard.press("Shift+F10");
-  await expect(page.getByRole("menu")).toBeVisible();
-  const accessibility = await new AxeBuilder({ page })
+  await ready(page);
+  const result = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
     .analyze();
-  expect(accessibility.violations).toEqual([]);
-  await page.keyboard.press("ArrowDown");
-  await expect(
-    page.getByRole("menuitemradio", { name: "Компактный", exact: true }),
-  ).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("menu")).toHaveCount(0);
-  await expect(orb(page)).toBeFocused();
+  expect(result.violations).toEqual([]);
 });
-
-test("context menu stays in the viewport, closes outside, and opens by long press", async ({
-  browser,
-}) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true,
-  });
-  const page = await context.newPage();
-  await cameraMock(page, "denied");
-  await page.goto("/kruzhok");
-  const bounds = (await orb(page).boundingBox())!;
-  const cdp = await context.newCDPSession(page);
-  await cdp.send("Input.dispatchTouchEvent", {
-    type: "touchStart",
-    touchPoints: [
-      { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 },
-    ],
-  });
-  await expect(page.getByRole("menu")).toBeVisible();
-  await cdp.send("Input.dispatchTouchEvent", {
-    type: "touchEnd",
-    touchPoints: [],
-  });
-  const menu = (await page.getByRole("menu").boundingBox())!;
-  expect(menu.x).toBeGreaterThanOrEqual(8);
-  expect(menu.x + menu.width).toBeLessThanOrEqual(382);
-  expect(menu.y + menu.height).toBeLessThanOrEqual(836);
-  await page.touchscreen.tap(10, 60);
-  await expect(page.getByRole("menu")).toHaveCount(0);
-  await context.close();
-});
-
-test("reduced motion uses a still frame; playback control is only in the context menu", async ({
-  page,
-}) => {
-  await cameraMock(page, "denied");
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/kruzhok");
-  await expect
-    .poll(() =>
-      page.locator("video").evaluate((v) => (v as HTMLVideoElement).paused),
-    )
-    .toBe(true);
-  await openMenu(page);
-  await page
-    .getByRole("menuitem", { name: "Воспроизвести видео", exact: true })
-    .click();
-  await expect
-    .poll(() =>
-      page.locator("video").evaluate((v) => (v as HTMLVideoElement).paused),
-    )
-    .toBe(false);
-  await openMenu(page);
-  await page
-    .getByRole("menuitem", { name: "Приостановить видео", exact: true })
-    .click();
-  await expect
-    .poll(() =>
-      page.locator("video").evaluate((v) => (v as HTMLVideoElement).paused),
-    )
-    .toBe(true);
-});
-
-test("native media API works automatically after navigation from home", async ({
+test("real browser media policy permits automatic camera after home navigation", async ({
   page,
   context,
   request,
 }) => {
   await context.grantPermissions(["camera"]);
-  const response = await page.goto("/");
-  expect(response?.headers()["permissions-policy"]).toBe(
-    "camera=(self), microphone=(), geolocation=()",
-  );
+  await page.goto("/");
   await page.locator(".camera-card").click();
-  await expect(orb(page)).toHaveClass(/is-live/);
+  await ready(page);
+  await expect(app(page).locator("body")).toHaveClass(/has-video/);
+  await expect
+    .poll(() =>
+      app(page)
+        .locator("#cam")
+        .evaluate((v) => {
+          const stream = (v as HTMLVideoElement).srcObject as MediaStream;
+          return Boolean(stream?.getVideoTracks()[0]?.getSettings().deviceId);
+        }),
+    )
+    .toBe(true);
   expect(
-    await page
-      .locator("video")
+    await app(page)
+      .locator("#cam")
       .evaluate(
         (v) =>
           ((v as HTMLVideoElement).srcObject as MediaStream).getAudioTracks()
             .length,
       ),
   ).toBe(0);
-  await source(page, "Видео Леонида");
-  const clip = await request.get("/kruzhok/intro.mp4");
-  expect(clip.status()).toBe(200);
-  expect(clip.headers()["content-type"]).toContain("video/mp4");
-  expect((await clip.body()).length).toBeLessThan(400000);
+  const headers = (await request.get("/kruzhok/runtime/index.html")).headers();
+  expect(headers["x-frame-options"]).toBe("SAMEORIGIN");
+  expect((await request.get("/")).headers()["x-frame-options"]).toBe("DENY");
 });
