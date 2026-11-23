@@ -16,7 +16,12 @@ export default defineConfig({
         : {}),
     },
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"], channel: "chromium" },
+    },
+  ],
   webServer: process.env.TEST_BASE_URL
     ? undefined
     : {

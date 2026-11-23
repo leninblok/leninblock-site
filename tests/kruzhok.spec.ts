@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 
 declare global {
   interface Window {
+    cameraFailure?: { name: string; message: string };
     cameraTest: {
       calls: MediaStreamConstraints[];
       streams: MediaStream[];
@@ -273,6 +274,22 @@ test("real browser media policy survives navigation from home", async ({
   context,
   request,
 }) => {
+  await page.addInitScript(() => {
+    const capture = navigator.mediaDevices.getUserMedia.bind(
+      navigator.mediaDevices,
+    );
+    navigator.mediaDevices.getUserMedia = async (constraints) => {
+      try {
+        return await capture(constraints);
+      } catch (error) {
+        window.cameraFailure = {
+          name: (error as Error).name,
+          message: (error as Error).message,
+        };
+        throw error;
+      }
+    };
+  });
   await context.grantPermissions(["camera"]);
   const response = await page.goto("/");
   expect(response?.headers()["permissions-policy"]).toBe(
@@ -280,7 +297,22 @@ test("real browser media policy survives navigation from home", async ({
   );
   await page.locator(".camera-card").click();
   await page.getByRole("button", { name: "Включить мою камеру" }).click();
-  await expect(orb(page)).toHaveClass(/is-live/);
+  try {
+    await expect(orb(page)).toHaveClass(/is-live/);
+  } catch (error) {
+    const details = await page.evaluate(async () => ({
+      failure: window.cameraFailure,
+      visibility: document.visibilityState,
+      devices: (await navigator.mediaDevices.enumerateDevices()).map((d) => ({
+        kind: d.kind,
+        label: d.label,
+      })),
+      status: document.querySelector('[role="status"]')?.textContent,
+    }));
+    throw new Error(
+      `${(error as Error).message}\nMedia diagnostics: ${JSON.stringify(details)}`,
+    );
+  }
   expect(
     await page
       .locator("video")
