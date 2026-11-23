@@ -1,225 +1,74 @@
 import Link from "next/link";
-import { Arrow, DownloadIcon } from "@/components/icons";
-import { kruzhokDownloads, kruzhokRelease, pageMetadata } from "@/content/site";
+import { BrandMark } from "@/components/icons";
+import { CameraDemo } from "@/components/kruzhok/camera-demo";
+import { DownloadPicker } from "@/components/kruzhok/download-picker";
+import { kruzhokRelease, pageMetadata } from "@/content/site";
+import "./kruzhok.css";
+
 export const metadata = pageMetadata(
   "Кружок — камера поверх окон",
-  "Скачайте Кружок для macOS или Windows. Приложение выводит камеру поверх окон, а запись вы ведёте в привычной программе.",
+  "Камера поверх окон для видеообъяснений. Попробуйте перетащить кружок, включите свою камеру и скачайте приложение для Mac или Windows.",
   "/kruzhok",
 );
 export default function Kruzhok() {
   return (
-    <main id="main" className="wrap product camera-product">
-      <Link className="back-link" href="/">
-        ← Все продукты
-      </Link>
-      <section className="product-hero" aria-labelledby="product-title">
-        <div className="product-heading">
-          <p className="eyebrow">Приложение для компьютера</p>
-          <h1 id="product-title">
-            Кружок<span className="accent">.</span>
-          </h1>
-          <p className="product-lead">
-            Камера поверх окон
-            <br />
-            для видеообъяснений.
-          </p>
-          <p className="body-copy">
-            Показывайте макет, разбирайте код или объясняйте задачу. Кружок
-            оставит вас в кадре рядом с тем, о чём вы говорите.
-          </p>
-          <a className="button button-dark" href="#download">
-            {kruzhokDownloads.length ? "Скачать Кружок" : "О скачивании"}{" "}
-            <DownloadIcon />
-          </a>
-          <p className="fine-print">
-            Для macOS и Windows · запись во внешней программе
-          </p>
-        </div>
-        <div className="product-poster camera-poster" aria-hidden="true">
-          <span className="art-label">КРУЖОК</span>
-          <span className="poster-circle" />
-          <p>
-            Вы — в кадре.
-            <br />
-            Работа —<br />
-            на экране.
-          </p>
-          <span className="poster-note">
-            Камера рядом с тем,
-            <br />
-            что вы показываете.
-          </span>
-        </div>
-      </section>
-      <section className="product-section" aria-labelledby="features-title">
-        <div className="section-heading">
-          <h2 id="features-title">В кадре — как вам удобно</h2>
-          <span className="section-note">Без лишних окон</span>
-        </div>
-        <div className="feature-grid">
-          <article>
-            <span className="feature-number">01</span>
-            <h3>Поверх вашей работы</h3>
-            <p>
-              Перетащите окно камеры в удобное место, в том числе на другой
-              монитор. Остальные приложения остаются под ним.
-            </p>
-          </article>
-          <article>
-            <span className="feature-number">02</span>
-            <h3>Нужная форма и размер</h3>
-            <p>
-              Выберите круг или прямоугольник с пропорциями 1:1, 4:5 или 9:16.
-              Настройте размер, тень, контур и отражение.
-            </p>
-          </article>
-          <article>
-            <span className="feature-number">03</span>
-            <h3>Ближе, когда нужно</h3>
-            <p>
-              Двойной клик увеличивает изображение и переносит его в центр
-              экрана. Ещё один — возвращает обратно.
-            </p>
-          </article>
-        </div>
-      </section>
-      <section
-        className="split-section product-section"
-        aria-labelledby="start-title"
-      >
-        <div>
-          <p className="eyebrow">Как это работает</p>
-          <h2 id="start-title">
-            Камера — в Кружке.
-            <br />
-            Запись — как привыкли.
-          </h2>
-          <p className="body-copy">
-            Кружок показывает изображение с камеры. Экран и звук записывает
-            выбранная вами программа.
-          </p>
-        </div>
-        <ol className="steps">
-          <li>
-            <span>1</span>
-            <div>
-              <h3>Откройте приложение</h3>
-              <p>При первом запуске разрешите доступ к камере.</p>
-            </div>
-          </li>
-          <li>
-            <span>2</span>
-            <div>
-              <h3>Расположите камеру</h3>
-              <p>
-                Перетащите её в нужное место. Правый клик открывает настройки
-                камеры и оформления.
-              </p>
-            </div>
-          </li>
-          <li>
-            <span>3</span>
-            <div>
-              <h3>Начните запись экрана</h3>
-              <p>
-                Записывайте в привычной программе. Кружок сохранит положение и
-                настройки для следующего запуска.
-              </p>
-            </div>
-          </li>
-        </ol>
-      </section>
-      <section
-        id="download"
-        className="download-panel"
-        aria-labelledby="download-title"
-      >
-        <p className="eyebrow">Скачивание</p>
-        <h2 id="download-title">
-          {kruzhokDownloads.length
-            ? "Выберите версию для компьютера"
-            : "Версия для скачивания готовится"}
-        </h2>
-        {kruzhokDownloads.length ? (
-          <>
-            <p className="download-intro">
-              Версия {kruzhokRelease.version} · Бесплатно, без регистрации.
-            </p>
-            <div className="download-options" aria-label="Установщики Кружка">
-              {kruzhokDownloads.map((download) => (
-                <a
-                  className="download-option"
-                  key={download.url}
-                  href={download.url}
-                >
-                  <span className="download-name">{download.label}</span>
-                  <span className="download-detail">{download.detail}</span>
-                  <DownloadIcon />
-                </a>
-              ))}
-            </div>
-            <p className="download-help">
-              Тип процессора Mac указан в меню Apple → «Об этом Mac».
-              Windows-сборка предназначена для компьютеров с процессором x64.
-            </p>
-            <div className="installation-grid">
-              <div>
-                <h3>Установка на Mac</h3>
-                <p>
-                  Откройте DMG и перетащите Кружок в «Программы». Запустите
-                  приложение и разрешите доступ к камере.
-                </p>
-              </div>
-              <div>
-                <h3>Установка на Windows</h3>
-                <p>
-                  Запустите EXE-установщик. После установки откройте Кружок и
-                  разрешите доступ к камере, если система запросит его.
-                </p>
-              </div>
-            </div>
-            <div className="installation-note">
-              <h3>Первый запуск и предупреждения системы</h3>
-              <p>
-                Эта версия без подписи издателя. macOS и Windows могут показать
-                предупреждение безопасности или заблокировать запуск.
-              </p>
-              <p>
-                На Mac после попытки запуска проверьте «Системные настройки» →
-                «Конфиденциальность и безопасность». Если вы доверяете
-                приложению, используйте «Всё равно открыть».{" "}
-                <a href="https://support.apple.com/ru-ru/102445">
-                  Инструкция Apple <Arrow external />
-                </a>
-              </p>
-              <p>
-                На Windows возможно предупреждение SmartScreen о неизвестном
-                издателе.
-              </p>
-            </div>
-            <div className="release-links">
-              <a href={kruzhokRelease.url}>
-                Релиз {kruzhokRelease.version} <Arrow external />
-              </a>
-              <a href={kruzhokRelease.checksumsUrl}>
-                Контрольные суммы SHA-256 <DownloadIcon />
-              </a>
-            </div>
-          </>
-        ) : (
-          <p>
-            Кружок рассчитан на macOS и Windows. Установщики пока недоступны для
-            публичного скачивания. Когда они будут готовы к распространению,
-            ссылки появятся здесь.
-          </p>
-        )}
-      </section>
-      <aside className="product-outro">
-        <p>Кружок — продукт Леонида Макарова.</p>
-        <Link className="text-link" href="/bible">
-          Другой проект: Откуда из Библии? <Arrow />
+    <main id="main" className="kruzhok-landing">
+      <header className="kruzhok-topbar">
+        <Link
+          href="/"
+          className="kruzhok-home"
+          aria-label="Ленинблок — главная"
+        >
+          <BrandMark />
+          <span>ленинблок.</span>
         </Link>
-      </aside>
+      </header>
+      <section className="kruzhok-hero" aria-labelledby="kruzhok-title">
+        <CameraDemo />
+        <h1 id="kruzhok-title">Кружок</h1>
+        <p className="kruzhok-tagline">
+          Камера поверх окон.
+          <br />
+          Для видеообъяснений.
+        </p>
+        <DownloadPicker />
+      </section>
+      <footer className="kruzhok-bottom">
+        <details className="kruzhok-installation">
+          <summary>Установка</summary>
+          <div className="kruzhok-installation-panel">
+            <h2>Установка Кружка</h2>
+            <p>
+              <strong>Mac.</strong> Один DMG подходит для Apple Silicon и Intel.
+              Откройте его и перетащите Кружок в «Программы».
+            </p>
+            <p>
+              <strong>Windows x64.</strong> Запустите EXE-установщик.
+            </p>
+            <p>
+              При первом запуске разрешите доступ к камере. Экран и звук
+              записывайте в привычной программе.
+            </p>
+            <p>
+              Версия {kruzhokRelease.version} без подписи издателя: система
+              может предупредить или заблокировать запуск. На Mac после попытки
+              запуска откройте «Системные настройки» → «Конфиденциальность и
+              безопасность». Если доверяете приложению, используйте «Всё равно
+              открыть».{" "}
+              <a href="https://support.apple.com/ru-ru/102445">
+                Инструкция Apple
+              </a>
+              . На Windows возможно предупреждение SmartScreen.
+            </p>
+            <div className="kruzhok-installation-links">
+              <a href={kruzhokRelease.url}>Все файлы релиза</a>
+              <a href={kruzhokRelease.checksumsUrl}>Контрольные суммы</a>
+            </div>
+          </div>
+        </details>
+        <a href="https://github.com/leninblok/floating-camera">GitHub</a>
+        <Link href="/">Леонид Макаров</Link>
+      </footer>
     </main>
   );
 }

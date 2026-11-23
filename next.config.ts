@@ -23,7 +23,9 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            // The document policy survives client navigation from the home page.
+            // Camera access still requires an explicit user request and consent.
+            value: "camera=(self), microphone=(), geolocation=()",
           },
         ],
       },

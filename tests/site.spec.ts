@@ -120,14 +120,10 @@ test("navigation and public download actions", async ({ page }) => {
   await page.goto("/");
   await page.locator(".camera-card").click();
   await expect(page).toHaveURL(/\/kruzhok$/);
-  await page.getByRole("link", { name: "Скачать Кружок", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Выберите версию для компьютера" }),
-  ).toBeInViewport();
-  await expect(page.locator(".download-option")).toHaveCount(3);
+  await page.getByText("Другие версии", { exact: true }).click();
+  await expect(page.locator(".kruzhok-platform-option")).toHaveCount(2);
   for (const [label, file] of [
-    ["Mac с Apple Silicon", "Kruzhok-1.1.0-mac-arm64.dmg"],
-    ["Mac с Intel", "Kruzhok-1.1.0-mac-x64.dmg"],
+    ["Mac · Apple Silicon и Intel", "Kruzhok-1.1.0-mac-universal.dmg"],
     ["Windows x64", "Kruzhok-1.1.0-windows-x64-Setup.exe"],
   ]) {
     await expect(
@@ -137,16 +133,15 @@ test("navigation and public download actions", async ({ page }) => {
       `https://github.com/leninblok/floating-camera/releases/download/v1.1.0/${file}`,
     );
   }
-  await expect(
-    page.getByText("Эта версия без подписи издателя.", { exact: false }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Версия для скачивания готовится", { exact: true }),
-  ).toHaveCount(0);
-  await page
-    .getByRole("link", { name: "Другой проект: Откуда из Библии?" })
-    .click();
-  await expect(page).toHaveURL(/\/bible$/);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".kruzhok-picker")).not.toHaveAttribute("open", "");
+  await expect(page.getByText("Другие версии", { exact: true })).toBeFocused();
+  await page.getByText("Установка", { exact: true }).click();
+  await expect(page.getByText(/без подписи издателя:/)).toBeVisible();
+  await page.getByRole("link", { name: "Леонид Макаров", exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator(".site-header")).toBeVisible();
+  await page.goto("/bible");
   await expect(
     page.getByRole("link", { name: "Играть", exact: true }),
   ).toHaveAttribute("href", "https://www.wherefrombible.ru/");

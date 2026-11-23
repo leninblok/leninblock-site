@@ -1,6 +1,11 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { BrandMark } from "./icons";
 export function Header() {
+  const pathname = usePathname();
+  if (pathname === "/kruzhok") return null;
   return (
     <header className="site-header wrap">
       <Link href="/" className="brand" aria-label="Ленинблок — главная">

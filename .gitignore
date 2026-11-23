@@ -8,3 +8,7 @@
 .DS_Store
 /test-results/
 /playwright-report/
+
+# Keep original video uploads local; publish optimized clips only.
+/*.mov
+/*.MOV

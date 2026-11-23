@@ -47,19 +47,21 @@ export const kruzhokRelease = {
   checksumsUrl:
     "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/SHA256SUMS",
 };
-export type Download = { label: string; url: string; detail: string };
+export type Download = {
+  label: string;
+  url: string;
+  detail: string;
+  platform: "mac" | "windows";
+};
 export const kruzhokDownloads: readonly Download[] = [
   {
-    label: "Mac с Apple Silicon",
-    detail: "DMG · 124 МБ",
-    url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-mac-arm64.dmg",
+    platform: "mac",
+    label: "Mac · Apple Silicon и Intel",
+    detail: "Универсальный DMG · 226 МБ",
+    url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-mac-universal.dmg",
   },
   {
-    label: "Mac с Intel",
-    detail: "DMG · 128 МБ",
-    url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-mac-x64.dmg",
-  },
-  {
+    platform: "windows",
     label: "Windows x64",
     detail: "EXE · 123 МБ",
     url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-windows-x64-Setup.exe",
