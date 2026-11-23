@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 declare global {
   interface Window {
@@ -211,7 +212,7 @@ test("camera is requested on entry, excludes audio, and switches source", async 
   await page
     .getByRole("link", { name: "Ленинблок — главная", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/$/);
+  await page.waitForURL(/\/$/);
   expect(
     await page.evaluate(() =>
       window.cameraTest.streams.every((s) =>
@@ -258,7 +259,7 @@ test("camera denial falls back quietly and can be retried from settings", async 
   await expect(orb(page)).not.toHaveClass(/is-live/);
   await expect(page.getByRole("status")).toHaveCount(0);
   await openMenu(page);
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.locator(".kruzhok-menu-message")).toContainText(
     "Доступ к камере закрыт",
   );
   await expect(
@@ -309,6 +310,10 @@ test("context menu changes size and appearance without a selection outline", asy
   ).toBe("none");
   await page.keyboard.press("Shift+F10");
   await expect(page.getByRole("menu")).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
   await page.keyboard.press("ArrowDown");
   await expect(
     page.getByRole("menuitemradio", { name: "Компактный", exact: true }),

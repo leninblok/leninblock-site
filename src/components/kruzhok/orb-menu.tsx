@@ -133,6 +133,11 @@ export function OrbMenu(props: Props) {
               key={source}
               role="menuitemradio"
               aria-checked={selected}
+              aria-describedby={
+                source === "camera" && props.message
+                  ? "kruzhok-source-message"
+                  : undefined
+              }
               tabIndex={-1}
               onClick={() => choose(() => props.onSource(source))}
             >
@@ -142,7 +147,11 @@ export function OrbMenu(props: Props) {
           );
         })}
         {props.message && (
-          <p className="kruzhok-menu-message" role="status">
+          <p
+            className="kruzhok-menu-message"
+            id="kruzhok-source-message"
+            role="presentation"
+          >
             {props.message}
           </p>
         )}
