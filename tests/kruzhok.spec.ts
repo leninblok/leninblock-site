@@ -41,7 +41,18 @@ async function cameraMock(
     });
   }, mode);
 }
-const orb = (page: Page) => page.getByRole("group", { name: "Кружок с видео" });
+const orb = (page: Page) =>
+  page.getByRole("button", { name: "Кружок с видео", exact: true });
+async function openMenu(page: Page) {
+  await orb(page).click({ button: "right" });
+  await expect(
+    page.getByRole("menu", { name: "Настройки кружка" }),
+  ).toBeVisible();
+}
+async function source(page: Page, name: "Моя камера" | "Видео Леонида") {
+  await openMenu(page);
+  await page.getByRole("menuitemradio", { name, exact: true }).click();
+}
 
 for (const [platform, ua, touch, label, file] of [
   [
@@ -58,24 +69,39 @@ for (const [platform, ua, touch, label, file] of [
     "Скачать для Windows",
     "windows-x64-Setup.exe",
   ],
-  ["Linux x86_64", "Mozilla/5.0 (X11; Linux x86_64)", 0, "Скачать Кружок", ""],
+  [
+    "Linux x86_64",
+    "Mozilla/5.0 (X11; Linux x86_64)",
+    0,
+    "Скачать для Mac",
+    "mac-universal.dmg",
+  ],
   [
     "MacIntel",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
     5,
-    "Скачать Кружок",
-    "",
+    "Скачать для Mac",
+    "mac-universal.dmg",
   ],
   [
     "iPhone",
     "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",
     5,
-    "Скачать Кружок",
-    "",
+    "Скачать для Mac",
+    "mac-universal.dmg",
   ],
-  ["Linux armv8l", "Mozilla/5.0 (Linux; Android 15)", 5, "Скачать Кружок", ""],
+  [
+    "Linux armv8l",
+    "Mozilla/5.0 (Linux; Android 15)",
+    5,
+    "Скачать для Mac",
+    "mac-universal.dmg",
+  ],
 ] as const) {
-  test(`download selection: ${platform} / touch ${touch}`, async ({ page }) => {
+  test(`two direct downloads: ${platform} / touch ${touch}`, async ({
+    page,
+  }) => {
+    await cameraMock(page, "denied");
     await page.addInitScript(
       ({ platform, ua, touch }) => {
         for (const [key, value] of Object.entries({
@@ -88,24 +114,15 @@ for (const [platform, ua, touch, label, file] of [
       { platform, ua, touch },
     );
     await page.goto("/kruzhok");
-    const primary = page.locator(".kruzhok-primary");
-    await expect(primary).toHaveText(label);
-    if (file)
-      await expect(primary).toHaveAttribute(
-        "href",
-        new RegExp(`${file.replaceAll(".", "\\.")}$`),
-      );
-    else {
-      await primary.click();
-      await expect(page.locator(".kruzhok-picker")).toHaveAttribute("open", "");
-    }
-    if (file) await page.getByText("Другие версии", { exact: true }).click();
-    await expect(page.locator(".kruzhok-platform-option")).toHaveCount(2);
-    await page.getByRole("heading", { name: "Кружок", exact: true }).click();
-    await expect(page.locator(".kruzhok-picker")).not.toHaveAttribute(
-      "open",
-      "",
+    await expect(page.locator(".kruzhok-primary")).toHaveText(label);
+    await expect(page.locator(".kruzhok-primary")).toHaveAttribute(
+      "href",
+      new RegExp(`${file.replaceAll(".", "\\.")}$`),
     );
+    await expect(page.locator(".kruzhok-secondary")).toHaveText(
+      label === "Скачать для Mac" ? "Скачать для Windows" : "Скачать для Mac",
+    );
+    await expect(page.locator(".kruzhok-download a")).toHaveCount(2);
   });
 }
 
@@ -130,11 +147,14 @@ test("dragging, keyboard movement, reset and viewport bounds", async ({
   await page.keyboard.press("ArrowRight");
   await page.setViewportSize({ width: 320, height: 568 });
   await expect
-    .poll(async () => (await orb(page).boundingBox())!.x)
-    .toBeLessThanOrEqual(108);
+    .poll(async () => {
+      const bounds = (await orb(page).boundingBox())!;
+      return bounds.x + bounds.width;
+    })
+    .toBeLessThanOrEqual(308);
   const bounds = (await orb(page).boundingBox())!;
   expect(bounds.x).toBeGreaterThanOrEqual(12);
-  expect(bounds.y + bounds.height).toBeLessThanOrEqual(532);
+  expect(bounds.y + bounds.height).toBeLessThanOrEqual(556);
 });
 
 test("touch dragging on a phone", async ({ browser }) => {
@@ -166,18 +186,16 @@ test("touch dragging on a phone", async ({ browser }) => {
   await context.close();
 });
 
-test("camera requires a click, excludes audio and stops on off/navigation", async ({
+test("camera is requested on entry, excludes audio, and switches source", async ({
   page,
 }) => {
   await cameraMock(page);
   await page.goto("/kruzhok");
-  expect(await page.evaluate(() => window.cameraTest.calls)).toEqual([]);
-  await page.getByRole("button", { name: "Включить мою камеру" }).click();
   await expect(orb(page)).toHaveClass(/is-live/);
   expect(await page.evaluate(() => window.cameraTest.calls)).toEqual([
     { video: { facingMode: "user" }, audio: false },
   ]);
-  await page.getByRole("button", { name: "Выключить камеру" }).click();
+  await source(page, "Видео Леонида");
   await expect(orb(page)).not.toHaveClass(/is-live/);
   expect(
     await page.evaluate(
@@ -188,9 +206,11 @@ test("camera requires a click, excludes audio and stops on off/navigation", asyn
     "src",
     "/kruzhok/intro.mp4",
   );
-  await page.getByRole("button", { name: "Включить мою камеру" }).click();
+  await source(page, "Моя камера");
   await expect(orb(page)).toHaveClass(/is-live/);
-  await page.getByRole("link", { name: "Леонид Макаров", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Ленинблок — главная", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/$/);
   expect(
     await page.evaluate(() =>
@@ -201,13 +221,19 @@ test("camera requires a click, excludes audio and stops on off/navigation", asyn
   ).toBe(true);
 });
 
-test("late camera permission after cancel is discarded and stopped", async ({
+test("pending permission retains author video and a late grant after changing source is stopped", async ({
   page,
 }) => {
   await cameraMock(page, "pending");
   await page.goto("/kruzhok");
-  await page.getByRole("button", { name: "Включить мою камеру" }).click();
-  await page.getByRole("button", { name: "Отменить подключение" }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.cameraTest.calls.length))
+    .toBe(1);
+  await expect(page.locator("video")).toHaveAttribute(
+    "src",
+    "/kruzhok/intro.mp4",
+  );
+  await source(page, "Видео Леонида");
   await page.evaluate(() =>
     window.cameraTest.resolve!(window.cameraTest.makeStream()),
   );
@@ -219,30 +245,116 @@ test("late camera permission after cancel is discarded and stopped", async ({
     )
     .toBe("ended");
   await expect(orb(page)).not.toHaveClass(/is-live/);
-  await expect(
-    page.getByRole("button", { name: "Включить мою камеру" }),
-  ).toBeVisible();
 });
 
-test("camera denial keeps the demo and gives an explanation", async ({
+test("camera denial falls back quietly and can be retried from settings", async ({
   page,
 }) => {
   await cameraMock(page, "denied");
   await page.goto("/kruzhok");
-  await page.getByRole("button", { name: "Включить мою камеру" }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.cameraTest.calls.length))
+    .toBe(1);
+  await expect(orb(page)).not.toHaveClass(/is-live/);
+  await expect(page.getByRole("status")).toHaveCount(0);
+  await openMenu(page);
   await expect(page.getByRole("status")).toContainText(
-    "Доступ к камере не разрешён",
-  );
-  await expect(page.locator("video")).toHaveAttribute(
-    "src",
-    "/kruzhok/intro.mp4",
+    "Доступ к камере закрыт",
   );
   await expect(
-    page.getByRole("button", { name: "Включить мою камеру" }),
-  ).toBeVisible();
+    page.getByRole("menuitemradio", { name: "Видео Леонида" }),
+  ).toHaveAttribute("aria-checked", "true");
+  await page
+    .getByRole("menuitemradio", { name: "Моя камера", exact: true })
+    .click();
+  await expect
+    .poll(() => page.evaluate(() => window.cameraTest.calls.length))
+    .toBe(2);
 });
 
-test("reduced motion and explicit playback/pause", async ({ page }) => {
+test("context menu changes size and appearance without a selection outline", async ({
+  page,
+}) => {
+  await cameraMock(page, "denied");
+  await page.goto("/kruzhok");
+  await openMenu(page);
+  await page
+    .getByRole("menuitemradio", { name: "Компактный", exact: true })
+    .click();
+  const compact = (await orb(page).boundingBox())!.width;
+  await openMenu(page);
+  await page
+    .getByRole("menuitemradio", { name: "Очень большой", exact: true })
+    .click();
+  await expect
+    .poll(async () => (await orb(page).boundingBox())!.width)
+    .toBeGreaterThan(compact);
+  for (const [name, className] of [
+    ["Контур", "has-border"],
+    ["Тень", "has-shadow"],
+    ["Отразить по горизонтали", "is-mirrored"],
+  ]) {
+    const wasEnabled = (await orb(page).getAttribute("class"))!.includes(
+      className,
+    );
+    await openMenu(page);
+    await page.getByRole("menuitemcheckbox", { name, exact: true }).click();
+    expect((await orb(page).getAttribute("class"))!.includes(className)).toBe(
+      !wasEnabled,
+    );
+  }
+  await orb(page).focus();
+  expect(
+    await orb(page).evaluate((el) => getComputedStyle(el).outlineStyle),
+  ).toBe("none");
+  await page.keyboard.press("Shift+F10");
+  await expect(page.getByRole("menu")).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await expect(
+    page.getByRole("menuitemradio", { name: "Компактный", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(orb(page)).toBeFocused();
+});
+
+test("context menu stays in the viewport, closes outside, and opens by long press", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await context.newPage();
+  await cameraMock(page, "denied");
+  await page.goto("/kruzhok");
+  const bounds = (await orb(page).boundingBox())!;
+  const cdp = await context.newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [
+      { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 },
+    ],
+  });
+  await expect(page.getByRole("menu")).toBeVisible();
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  const menu = (await page.getByRole("menu").boundingBox())!;
+  expect(menu.x).toBeGreaterThanOrEqual(8);
+  expect(menu.x + menu.width).toBeLessThanOrEqual(382);
+  expect(menu.y + menu.height).toBeLessThanOrEqual(836);
+  await page.touchscreen.tap(10, 60);
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await context.close();
+});
+
+test("reduced motion uses a still frame; playback control is only in the context menu", async ({
+  page,
+}) => {
+  await cameraMock(page, "denied");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/kruzhok");
   await expect
@@ -250,17 +362,18 @@ test("reduced motion and explicit playback/pause", async ({ page }) => {
       page.locator("video").evaluate((v) => (v as HTMLVideoElement).paused),
     )
     .toBe(true);
-  await orb(page).hover();
+  await openMenu(page);
   await page
-    .getByRole("button", { name: "Воспроизвести демонстрацию" })
+    .getByRole("menuitem", { name: "Воспроизвести видео", exact: true })
     .click();
   await expect
     .poll(() =>
       page.locator("video").evaluate((v) => (v as HTMLVideoElement).paused),
     )
     .toBe(false);
+  await openMenu(page);
   await page
-    .getByRole("button", { name: "Приостановить демонстрацию" })
+    .getByRole("menuitem", { name: "Приостановить видео", exact: true })
     .click();
   await expect
     .poll(() =>
@@ -269,50 +382,18 @@ test("reduced motion and explicit playback/pause", async ({ page }) => {
     .toBe(true);
 });
 
-test("real browser media policy survives navigation from home", async ({
+test("native media API works automatically after navigation from home", async ({
   page,
   context,
   request,
 }) => {
-  await page.addInitScript(() => {
-    const capture = navigator.mediaDevices.getUserMedia.bind(
-      navigator.mediaDevices,
-    );
-    navigator.mediaDevices.getUserMedia = async (constraints) => {
-      try {
-        return await capture(constraints);
-      } catch (error) {
-        window.cameraFailure = {
-          name: (error as Error).name,
-          message: (error as Error).message,
-        };
-        throw error;
-      }
-    };
-  });
   await context.grantPermissions(["camera"]);
   const response = await page.goto("/");
   expect(response?.headers()["permissions-policy"]).toBe(
     "camera=(self), microphone=(), geolocation=()",
   );
   await page.locator(".camera-card").click();
-  await page.getByRole("button", { name: "Включить мою камеру" }).click();
-  try {
-    await expect(orb(page)).toHaveClass(/is-live/);
-  } catch (error) {
-    const details = await page.evaluate(async () => ({
-      failure: window.cameraFailure,
-      visibility: document.visibilityState,
-      devices: (await navigator.mediaDevices.enumerateDevices()).map((d) => ({
-        kind: d.kind,
-        label: d.label,
-      })),
-      status: document.querySelector('[role="status"]')?.textContent,
-    }));
-    throw new Error(
-      `${(error as Error).message}\nMedia diagnostics: ${JSON.stringify(details)}`,
-    );
-  }
+  await expect(orb(page)).toHaveClass(/is-live/);
   expect(
     await page
       .locator("video")
@@ -322,7 +403,7 @@ test("real browser media policy survives navigation from home", async ({
             .length,
       ),
   ).toBe(0);
-  await page.getByRole("button", { name: "Выключить камеру" }).click();
+  await source(page, "Видео Леонида");
   const clip = await request.get("/kruzhok/intro.mp4");
   expect(clip.status()).toBe(200);
   expect(clip.headers()["content-type"]).toContain("video/mp4");

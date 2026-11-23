@@ -1,5 +1,4 @@
 .kruzhok-landing {
-  --orb-size: 244px;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -30,7 +29,7 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 50px 24px 70px;
+  padding: 50px 24px 120px;
 }
 .kruzhok-hero h1 {
   order: 1;
@@ -49,8 +48,10 @@
 .kruzhok-download {
   order: 3;
   margin-top: 34px;
-  position: relative;
-  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 .kruzhok-primary {
   min-width: 224px;
@@ -60,88 +61,27 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  border: 0;
   background: var(--ink);
   color: #fff;
-  font: inherit;
   font-size: 16px;
   font-weight: 600;
-  cursor: pointer;
   transition: background 0.15s;
 }
 .kruzhok-primary:hover {
   background: #454a39;
 }
-.kruzhok-release {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
-  margin-top: 13px;
-}
-.kruzhok-picker {
-  margin-top: 12px;
-  display: inline-block;
+.kruzhok-secondary {
   font-size: 14px;
-}
-.kruzhok-picker summary,
-.kruzhok-installation summary {
-  cursor: pointer;
-  list-style: none;
+  line-height: 1.5;
+  color: var(--muted);
   text-decoration: underline;
   text-underline-offset: 4px;
   text-decoration-color: #adb0a4;
 }
-.kruzhok-picker summary::-webkit-details-marker,
-.kruzhok-installation summary::-webkit-details-marker {
-  display: none;
-}
-.kruzhok-picker summary:focus-visible,
-.kruzhok-installation summary:focus-visible {
-  outline: 3px solid #6550aa;
-  outline-offset: 6px;
-}
-.kruzhok-picker-panel {
-  position: absolute;
-  top: calc(100% + 12px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(320px, calc(100vw - 40px));
-  background: #fff;
-  border: 1px solid var(--line);
-  box-shadow: 0 12px 40px #25272015;
-  border-radius: 12px;
-  padding: 8px;
-  text-align: left;
-}
-.kruzhok-platform-option {
-  display: block;
-  padding: 14px;
-  border-radius: 7px;
-}
-.kruzhok-platform-option:hover {
-  background: #f1f3e9;
-}
-.kruzhok-platform-option span {
-  display: block;
-  font-size: 16px;
-}
-.kruzhok-platform-option small {
-  display: block;
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 5px;
-}
-.kruzhok-noscript {
-  display: flex;
-  gap: 20px;
-  margin-top: 16px;
-}
-.kruzhok-noscript a {
-  text-decoration: underline;
+.kruzhok-secondary:hover {
+  color: var(--ink);
 }
 .kruzhok-camera-anchor {
-  width: var(--orb-size);
-  height: var(--orb-size);
   position: fixed;
   left: calc(50% + 285px);
   top: 24vh;
@@ -149,8 +89,6 @@
   pointer-events: none;
 }
 .kruzhok-camera-orb {
-  width: var(--orb-size);
-  height: var(--orb-size);
   position: fixed;
   left: calc(50% + 285px);
   top: 24vh;
@@ -160,23 +98,36 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 .kruzhok-camera-orb.is-dragging {
   cursor: grabbing;
 }
-.kruzhok-camera-orb:focus-visible {
-  outline: 3px solid #6550aa;
-  outline-offset: 7px;
+.kruzhok-camera-orb:focus {
+  outline: none;
 }
 .kruzhok-camera-media {
   width: 100%;
   height: 100%;
   border-radius: inherit;
   overflow: hidden;
-  background: #e8eadf;
+  background: #080808;
+  position: relative;
+}
+.kruzhok-camera-orb.has-shadow .kruzhok-camera-media {
   box-shadow:
-    0 10px 32px #25272024,
-    0 2px 8px #25272012;
+    0 10px 28px #00000061,
+    0 2px 8px #00000038;
+}
+.kruzhok-camera-orb.has-border .kruzhok-camera-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 3px solid #fff;
+  border-radius: inherit;
+  pointer-events: none;
 }
 .kruzhok-camera-media video {
   width: 100%;
@@ -185,131 +136,71 @@
   object-fit: cover;
   pointer-events: none;
 }
-.kruzhok-camera-orb.is-live video {
+.kruzhok-camera-orb.is-mirrored video {
   transform: scaleX(-1);
 }
-.kruzhok-orb-hint {
-  position: absolute;
-  top: calc(100% + 18px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  color: var(--muted);
+.kruzhok-context-menu {
+  position: fixed;
+  z-index: 100;
+  width: min(248px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #00000018;
+  border-radius: 10px;
+  padding: 6px;
+  background: #fafafaf5;
+  color: #252720;
+  box-shadow:
+    0 12px 36px #00000025,
+    0 1px 5px #00000012;
+  backdrop-filter: blur(16px);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: left;
+  user-select: none;
+}
+.kruzhok-menu-heading {
+  padding: 7px 12px 5px 30px;
+  font-size: 14px;
+  color: #62655c;
+}
+.kruzhok-context-menu button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: inherit;
+  font: inherit;
   font-size: 14px;
   line-height: 1.4;
-  pointer-events: none;
-}
-.kruzhok-orb-controls {
-  position: absolute;
-  bottom: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #252720;
-  color: #fff;
-  border-radius: 24px;
-  display: flex;
-  padding: 2px 5px;
-  gap: 2px;
-  white-space: nowrap;
-  box-shadow: 0 3px 12px #25272020;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s;
-}
-.kruzhok-orb-controls button {
-  font: inherit;
-  font-size: 13px;
-  background: transparent;
-  color: inherit;
-  border: 0;
-  border-radius: 20px;
-  padding: 8px 10px;
-  cursor: pointer;
-  min-height: 34px;
-}
-.kruzhok-orb-controls button:hover {
-  background: #ffffff20;
-}
-.kruzhok-camera-orb:hover .kruzhok-orb-controls,
-.kruzhok-camera-orb:focus-within .kruzhok-orb-controls {
-  opacity: 1;
-  pointer-events: auto;
-}
-.kruzhok-camera-orb:hover .kruzhok-orb-hint,
-.kruzhok-camera-orb:focus-within .kruzhok-orb-hint {
-  opacity: 0;
-}
-.kruzhok-camera-actions {
-  order: 4;
-  margin-top: 32px;
-  max-width: 340px;
-}
-.kruzhok-camera-toggle {
-  font: inherit;
-  font-size: 14px;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  padding: 8px 10px;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-color: #adb0a4;
-}
-.kruzhok-camera-status {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--muted);
-  margin-top: 4px;
-  min-height: 2.5em;
-}
-.kruzhok-bottom {
-  padding: 24px 32px 28px;
-  display: flex;
-  gap: 28px;
-  justify-content: center;
-  align-items: center;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.5;
-  position: relative;
-  z-index: 40;
-}
-.kruzhok-installation-panel {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(560px, calc(100vw - 32px));
-  max-height: min(62vh, 480px);
-  overflow-y: auto;
-  border: 1px solid var(--line);
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 12px 40px #25272018;
-  padding: 24px;
   text-align: left;
-  color: var(--ink);
+  cursor: default;
 }
-.kruzhok-installation-panel h2 {
-  font-size: 22px;
-  margin-bottom: 18px;
+.kruzhok-context-menu button:hover,
+.kruzhok-context-menu button:focus {
+  outline: none;
+  background: #e6e8df;
 }
-.kruzhok-installation-panel p {
-  font-size: 16px;
-  line-height: 1.6;
-  margin-top: 14px;
-}
-.kruzhok-installation-panel a {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.kruzhok-installation-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+.kruzhok-menu-check {
+  width: 17px;
+  flex-shrink: 0;
   font-size: 14px;
-  margin-top: 20px;
+  text-align: center;
+}
+.kruzhok-context-menu [role="separator"] {
+  border-top: 1px solid #2527201c;
+  margin: 6px 4px;
+}
+.kruzhok-menu-message {
+  padding: 5px 12px 5px 30px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #62655c;
 }
 .visually-hidden {
   position: absolute;
@@ -322,36 +213,22 @@
   white-space: nowrap;
   border: 0;
 }
-@media (max-width: 1100px) and (min-width: 901px) {
-  .kruzhok-landing {
-    --orb-size: 204px;
-  }
-  .kruzhok-camera-anchor,
-  .kruzhok-camera-orb {
-    left: calc(50% + 225px);
-    top: 20vh;
-  }
-}
-@media (max-width: 900px) {
-  .kruzhok-landing {
-    --orb-size: 200px;
-  }
+@media (max-width: 1100px) {
   .kruzhok-topbar {
     padding: 24px;
   }
   .kruzhok-hero {
     justify-content: flex-start;
-    padding: 24px 20px 32px;
+    padding: 24px 20px 48px;
   }
   .kruzhok-camera-anchor {
     position: static;
-    height: calc(var(--orb-size) + 26px);
     order: 0;
-    margin: 0 auto 24px;
+    margin: 0 auto 40px;
   }
   .kruzhok-camera-orb {
-    left: calc(50% - 100px);
-    top: 110px;
+    left: calc(50% - 122px);
+    top: 95px;
   }
   .kruzhok-hero h1 {
     font-size: clamp(4.5rem, 14vw, 5.75rem);
@@ -362,25 +239,8 @@
   .kruzhok-download {
     margin-top: 28px;
   }
-  .kruzhok-camera-actions {
-    margin-top: 24px;
-  }
-  .kruzhok-bottom {
-    gap: 24px;
-    padding: 20px 20px 28px;
-  }
-}
-@media (hover: none) {
-  .kruzhok-orb-controls {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .kruzhok-orb-hint {
-    display: none;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .kruzhok-orb-controls,
   .kruzhok-primary {
     transition: none;
   }

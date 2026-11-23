@@ -120,25 +120,25 @@ test("navigation and public download actions", async ({ page }) => {
   await page.goto("/");
   await page.locator(".camera-card").click();
   await expect(page).toHaveURL(/\/kruzhok$/);
-  await page.getByText("Другие версии", { exact: true }).click();
-  await expect(page.locator(".kruzhok-platform-option")).toHaveCount(2);
+  await expect(page.locator(".kruzhok-download a")).toHaveCount(2);
   for (const [label, file] of [
-    ["Mac · Apple Silicon и Intel", "Kruzhok-1.1.0-mac-universal.dmg"],
-    ["Windows x64", "Kruzhok-1.1.0-windows-x64-Setup.exe"],
+    ["Скачать для Mac", "Kruzhok-1.1.0-mac-universal.dmg"],
+    ["Скачать для Windows", "Kruzhok-1.1.0-windows-x64-Setup.exe"],
   ]) {
     await expect(
-      page.getByRole("link", { name: new RegExp(label) }),
+      page.getByRole("link", { name: label, exact: true }),
     ).toHaveAttribute(
       "href",
       `https://github.com/leninblok/floating-camera/releases/download/v1.1.0/${file}`,
     );
   }
-  await page.keyboard.press("Escape");
-  await expect(page.locator(".kruzhok-picker")).not.toHaveAttribute("open", "");
-  await expect(page.getByText("Другие версии", { exact: true })).toBeFocused();
-  await page.getByText("Установка", { exact: true }).click();
-  await expect(page.getByText(/без подписи издателя:/)).toBeVisible();
-  await page.getByRole("link", { name: "Леонид Макаров", exact: true }).click();
+  await expect(page.getByText("Установка", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "GitHub", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("link", { name: "Ленинблок — главная", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator(".site-header")).toBeVisible();
   await page.goto("/bible");
