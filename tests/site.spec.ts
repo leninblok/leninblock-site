@@ -122,14 +122,14 @@ test("navigation and public download actions", async ({ page }) => {
   await expect(page).toHaveURL(/\/kruzhok$/);
   await expect(page.locator(".kruzhok-download a")).toHaveCount(2);
   for (const [label, file] of [
-    ["Скачать для Mac", "Kruzhok-1.1.0-mac-universal.dmg"],
-    ["Скачать для Windows", "Kruzhok-1.1.0-windows-x64-Setup.exe"],
+    ["Скачать для Mac", "Kruzhok-1.2.0-mac-universal.dmg"],
+    ["Скачать для Windows", "Kruzhok-1.2.0-windows-x64-Setup.exe"],
   ]) {
     await expect(
       page.getByRole("link", { name: label, exact: true }),
     ).toHaveAttribute(
       "href",
-      `https://github.com/leninblok/floating-camera/releases/download/v1.1.0/${file}`,
+      `https://github.com/leninblok/floating-camera/releases/download/v1.2.0/${file}`,
     );
   }
   await expect(page.getByText("Установка", { exact: true })).toHaveCount(0);

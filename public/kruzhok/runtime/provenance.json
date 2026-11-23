@@ -1,10 +1,10 @@
 {
   "repository": "https://github.com/leninblok/floating-camera",
-  "version": "1.1.0",
-  "mainSha256": "8a029e153316e8542f9806f7186dc0eeef66a9f711e69428e8fbe57a534ecb1c",
-  "styleSha256": "3525e1830bb5d472d9bfd3f8f1d1ed7c8505d96ca0ba7668526d315d9d783fa1",
-  "rendererSha256": "2a70cfacf132663679d28ab3f482bde080926e73cd6c4ba672e7c65e839f46de",
-  "indexSha256": "b364b963d6921a889b08c25008aad0a2e55674974aba232bc223b66a78cbd751",
+  "version": "1.2.0",
+  "layoutSha256": "70904c44055e9bdb505ac9fd35f8ec3e2f35da886a32a0627be122f5dd454397",
+  "styleSha256": "cd1fb7195c53a5a84a1b6e499da5b1138a4dc7b2711dfbbf1b2badf9d43f22ba",
+  "rendererSha256": "49eee81be33ab702c11531cf70b372ee00f71a71ad3bc141958f60bb3c432309",
+  "indexSha256": "363587a5dbaf985e2b181e01dcfcc20cb0419455c7b380e5f93d9c9e858f06a8",
   "functions": [
     "compactBounds",
     "clampNumber",
@@ -38,7 +38,7 @@
     "setCameraDeviceId"
   ],
   "adaptations": [
-    "Electron IPC/window bindings replaced by browser adapter",
+    "Tauri native window bindings replaced by browser adapter",
     "Native OS permission button uses browser guidance",
     "Author video offered as an additional local camera source"
   ]

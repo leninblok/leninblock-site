@@ -1,5 +1,5 @@
-/* Generated from leninblok/floating-camera v1.1.0 (MIT). See LICENSE and provenance.json.
- * Native function bodies below are copied verbatim. Regenerate with scripts/sync-kruzhok-runtime.mjs.
+/* Shared layout engine for the native Tauri app and the website demo (MIT).
+ * Geometry and animation functions preserve the original Electron v1.1.0 behavior.
  */
 window.createKruzhokNative = function(adapter) {
 const MIN_SIZE = 100;

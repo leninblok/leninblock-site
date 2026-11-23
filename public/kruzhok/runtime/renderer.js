@@ -7,6 +7,61 @@
   const errText = document.getElementById('errText');
   const retryButton = document.getElementById('retryButton');
   const privacyButton = document.getElementById('privacyButton');
+  const shapeFallback = typeof CSS !== 'undefined' && !CSS.supports('corner-shape', 'superellipse(1.5)')
+    ? createShapeFallback() : null;
+
+  // WKWebView does not yet implement CSS corner-shape. Use the same
+  // superellipse equation for its clip, border and shadow instead of silently
+  // changing the application's shape to an ordinary rounded rectangle.
+  function createShapeFallback() {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = (name, attributes = {}) => {
+      const node = document.createElementNS(ns, name);
+      for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+      return node;
+    };
+    document.body.classList.add('shape-fallback');
+    const definitions = svg('svg', { width: 0, height: 0, 'aria-hidden': 'true' });
+    definitions.style.position = 'absolute';
+    const clip = svg('clipPath', { id: 'camera-shape-clip', clipPathUnits: 'userSpaceOnUse' });
+    const outline = svg('path'); clip.append(outline); definitions.append(clip);
+    document.body.prepend(definitions);
+    const shadow = svg('svg', { class: 'shape-shadow', 'aria-hidden': 'true' });
+    const shadowPath = svg('path', { fill: '#080808' }); shadow.append(shadowPath); cameraShell.prepend(shadow);
+    const border = svg('svg', { class: 'shape-border', 'aria-hidden': 'true' });
+    const borderPath = svg('path', { fill: 'none', stroke: 'white' }); border.append(borderPath); circle.append(border);
+    let frame = null;
+    function draw() {
+      const width = cameraShell.clientWidth, height = cameraShell.clientHeight;
+      if (!width || !height) return;
+      const style = getComputedStyle(cameraShell);
+      const radius = Math.min(width, height) * (parseFloat(style.getPropertyValue('--corner-fraction')) || 0.5);
+      const exponent = parseFloat(style.getPropertyValue('--corner-exponent')) || 1;
+      const power = 2 / 2 ** exponent;
+      const points = [];
+      for (const [cx, cy, angle] of [[width-radius,radius,-Math.PI/2], [width-radius,height-radius,0], [radius,height-radius,Math.PI/2], [radius,radius,Math.PI]]) {
+        for (let i = 0; i <= 32; i++) {
+          const t = angle + i / 32 * Math.PI / 2;
+          const coordinate = value => Math.sign(value) * Math.abs(value) ** power;
+          points.push(`${(cx + radius * coordinate(Math.cos(t))).toFixed(3)},${(cy + radius * coordinate(Math.sin(t))).toFixed(3)}`);
+        }
+      }
+      const path = `M${points.join(' L')} Z`;
+      for (const node of [outline, shadowPath, borderPath]) node.setAttribute('d', path);
+      borderPath.setAttribute('stroke-width', 2 * (Math.min(width,height) >= 350 ? 4 : Math.min(width,height) >= 250 ? 3 : 2));
+    }
+    function animate() {
+      if (frame !== null) cancelAnimationFrame(frame);
+      const start = performance.now();
+      const tick = () => {
+        draw();
+        frame = performance.now() - start < 200 ? requestAnimationFrame(tick) : null;
+      };
+      tick();
+    }
+    window.addEventListener('beforeunload', () => { if (frame !== null) cancelAnimationFrame(frame); });
+    return { draw, animate };
+  }
 
   const CORNER_RADIUS_FRACTIONS = { '1:1': 0.286, '4:5': 0.22, '9:16': 0.16 };
   let enlarged = false;
@@ -138,6 +193,7 @@
     cameraShell.style.setProperty('--short-side', `${shortSide}px`);
     circle.style.setProperty('--border-width', `${shortSide >= 350 ? 4 : shortSide >= 250 ? 3 : 2}px`);
     document.body.classList.toggle('border-enabled', borderEnabled);
+    shapeFallback?.draw();
   }
 
   function applyShape() {
@@ -148,6 +204,7 @@
     cameraShell.style.setProperty('--corner-fraction', rectangle ? (CORNER_RADIUS_FRACTIONS[aspectRatio] || 0.22) : 0.5);
     cameraShell.style.setProperty('--corner-exponent', rectangle ? 1.5 : 1);
     updateGeometry();
+    shapeFallback?.animate();
   }
 
   function captureConstraints() {

@@ -38,14 +38,13 @@ export function pageMetadata(
   };
 }
 
-// TODO(owner): add a real recording of Kruzhok. Do not substitute a fabricated screenshot.
 // Pin downloads to the verified release: asset names include the version.
 // Update URLs, sizes and installation notes together when publishing a new release.
 export const kruzhokRelease = {
-  version: "1.1.0",
-  url: "https://github.com/leninblok/floating-camera/releases/tag/v1.1.0",
+  version: "1.2.0",
+  url: "https://github.com/leninblok/floating-camera/releases/tag/v1.2.0",
   checksumsUrl:
-    "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/SHA256SUMS",
+    "https://github.com/leninblok/floating-camera/releases/download/v1.2.0/SHA256SUMS",
 };
 export type Download = {
   label: string;
@@ -57,13 +56,13 @@ export const kruzhokDownloads: readonly Download[] = [
   {
     platform: "mac",
     label: "Mac · Apple Silicon и Intel",
-    detail: "Универсальный DMG · 226 МБ",
-    url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-mac-universal.dmg",
+    detail: "Универсальный DMG · 8,3 МБ",
+    url: "https://github.com/leninblok/floating-camera/releases/download/v1.2.0/Kruzhok-1.2.0-mac-universal.dmg",
   },
   {
     platform: "windows",
     label: "Windows x64",
-    detail: "EXE · 123 МБ",
-    url: "https://github.com/leninblok/floating-camera/releases/download/v1.1.0/Kruzhok-1.1.0-windows-x64-Setup.exe",
+    detail: "EXE · 1,3 МБ",
+    url: "https://github.com/leninblok/floating-camera/releases/download/v1.2.0/Kruzhok-1.2.0-windows-x64-Setup.exe",
   },
 ];

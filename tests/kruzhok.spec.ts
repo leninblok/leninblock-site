@@ -448,3 +448,35 @@ test("real browser media policy permits automatic camera after home navigation",
   expect(headers["x-frame-options"]).toBe("SAMEORIGIN");
   expect((await request.get("/")).headers()["x-frame-options"]).toBe("DENY");
 });
+
+test("Safari fallback preserves clipping, border and shape changes", async ({ page }) => {
+  await mockCamera(page);
+  await page.addInitScript(() => {
+    const supports = CSS.supports.bind(CSS);
+    CSS.supports = ((property: string, value?: string) =>
+      property === "corner-shape" ? false : value === undefined
+        ? supports(property) : supports(property, value)) as typeof CSS.supports;
+  });
+  await page.goto("/kruzhok");
+  await ready(page);
+  const frame = app(page);
+  await expect(frame.locator("body")).toHaveClass(/shape-fallback/);
+  await expect(frame.locator("#camera-shape-clip path")).toHaveAttribute("d", /^M.+ Z$/);
+  await choose(page, "Круг");
+  await page.waitForTimeout(250);
+  const hit = await frame.locator("#circle").evaluate((circle) => {
+    const rect = circle.getBoundingClientRect();
+    const center = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    const corner = document.elementFromPoint(rect.x + 0.2, rect.y + 0.2);
+    return [center === circle || circle.contains(center), corner !== circle && !circle.contains(corner)];
+  });
+  expect(hit).toEqual([true, true]);
+  await page.getByRole("checkbox", { name: "Контур", exact: true }).click();
+  await expect(page.getByRole("checkbox", { name: "Контур", exact: true })).toBeChecked();
+  await expect(frame.locator(".shape-border")).toHaveCSS("opacity", "1");
+  const circlePath = await frame.locator("#camera-shape-clip path").getAttribute("d");
+  await choose(page, "Прямоугольник");
+  await choose(page, "4:5");
+  await page.waitForTimeout(250);
+  expect(await frame.locator("#camera-shape-clip path").getAttribute("d")).not.toBe(circlePath);
+});
