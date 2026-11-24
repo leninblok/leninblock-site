@@ -118,7 +118,7 @@ test("sitemap, robots, icon and absent future pages", async ({
 
 test("navigation and public download actions", async ({ page }) => {
   await page.goto("/");
-  await page.locator(".camera-card").click();
+  await page.getByRole("link", { name: "Попробовать Кружок" }).click();
   await expect(page).toHaveURL(/\/kruzhok$/);
   await expect(page.locator(".kruzhok-download a")).toHaveCount(2);
   for (const [label, file] of [

@@ -12,3 +12,6 @@
 # Keep original video uploads local; publish optimized clips only.
 /*.mov
 /*.MOV
+
+# Personal resume supplied for portfolio content.
+/Макаров Леонид (5).pdf

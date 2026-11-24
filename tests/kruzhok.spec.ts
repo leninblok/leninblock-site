@@ -422,7 +422,7 @@ test("real browser media policy permits automatic camera after home navigation",
 }) => {
   await context.grantPermissions(["camera"]);
   await page.goto("/");
-  await page.locator(".camera-card").click();
+  await page.getByRole("link", { name: "Попробовать Кружок" }).click();
   await ready(page);
   await expect(app(page).locator("body")).toHaveClass(/has-video/);
   await expect
