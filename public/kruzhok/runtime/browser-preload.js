@@ -132,7 +132,10 @@
       persist();
     },
   });
-  applyBounds(engine.initialBounds());
+  // The page opens with the live camera centered above the title. Keep the
+  // application's actual dimensions and let users drag it from there.
+  const initial = engine.initialBounds();
+  applyBounds({ ...initial, x: (surface().clientWidth - initial.width) / 2, y: 0 });
 
   function own(stream, stopSource) {
     for (const track of stream.getTracks()) {

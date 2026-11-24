@@ -136,9 +136,7 @@ test("navigation and public download actions", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: "GitHub", exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByRole("link", { name: "Ленинблок — главная", exact: true })
-    .click();
+  await page.goBack();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator(".site-header")).toBeVisible();
   await page.goto("/bible");

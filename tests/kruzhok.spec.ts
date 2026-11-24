@@ -227,7 +227,8 @@ test("camera starts automatically, excludes audio, switches source and stops aft
   page,
 }) => {
   await mockCamera(page, "live");
-  await page.goto("/kruzhok");
+  await page.goto("/");
+  await page.getByRole("link", { name: "Попробовать Кружок" }).click();
   await ready(page);
   await expect
     .poll(() =>
@@ -269,9 +270,7 @@ test("camera starts automatically, excludes audio, switches source and stops aft
       frame.contentWindow as Window
     ).cameraTest.streams.flatMap((s) => s.getTracks());
   });
-  await page
-    .getByRole("link", { name: "Ленинблок — главная", exact: true })
-    .click();
+  await page.goBack();
   await page.waitForURL(/\/$/);
   await expect(page.locator(".site-header")).toBeVisible();
   await expect
@@ -355,6 +354,7 @@ test("drag is frame-coalesced and releases back from the elastic edge", async ({
     "true",
   );
   const circle = app(page).locator("#circle");
+  await page.locator("iframe").scrollIntoViewIfNeeded();
   const rect = (await circle.boundingBox())!;
   const before = await windowBounds(page);
   await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
@@ -479,4 +479,18 @@ test("Safari fallback preserves clipping, border and shape changes", async ({ pa
   await choose(page, "4:5");
   await page.waitForTimeout(250);
   expect(await frame.locator("#camera-shape-clip path").getAttribute("d")).not.toBe(circlePath);
+});
+
+test("live camera opens centered above the title and downloads", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockCamera(page);
+  await page.goto("/kruzhok");
+  await ready(page);
+  const camera = (await app(page).locator("#circle").boundingBox())!;
+  const title = (await page.getByRole("heading", { name: "Кружок", exact: true }).boundingBox())!;
+  const download = (await page.locator(".kruzhok-primary").boundingBox())!;
+  expect(Math.abs(camera.x + camera.width / 2 - 720)).toBeLessThanOrEqual(1);
+  expect(camera.y + camera.height).toBeLessThan(title.y);
+  expect(title.y + title.height).toBeLessThan(download.y);
+  await expect(page.locator(".kruzhok-topbar")).toHaveCount(0);
 });

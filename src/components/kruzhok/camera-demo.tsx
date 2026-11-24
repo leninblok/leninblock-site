@@ -124,9 +124,6 @@ export function CameraDemo({ children }: { children: ReactNode }) {
 
   return (
     <div className="kruzhok-demo" ref={root}>
-      <section className="kruzhok-intro" aria-labelledby="kruzhok-title">
-        {children}
-      </section>
       <div
         className="kruzhok-preview-surface"
         aria-label="Демонстрация приложения"
@@ -144,6 +141,9 @@ export function CameraDemo({ children }: { children: ReactNode }) {
           }}
         />
       </div>
+      <section className="kruzhok-intro" aria-labelledby="kruzhok-title">
+        {children}
+      </section>
       <section
         className="kruzhok-settings"
         aria-labelledby="kruzhok-settings-title"
