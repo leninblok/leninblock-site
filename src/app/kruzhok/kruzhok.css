@@ -273,3 +273,101 @@
     transition: none;
   }
 }
+
+/* The live camera is the product: keep the surrounding interface quiet. */
+.kruzhok-landing {
+  background: #fafaf7;
+}
+.kruzhok-topbar {
+  padding-block: 28px;
+}
+.kruzhok-home {
+  transition: opacity 160ms ease;
+}
+.kruzhok-home:hover {
+  opacity: .7;
+}
+.kruzhok-intro {
+  padding-top: clamp(68px, 10vh, 110px);
+}
+.kruzhok-intro h1 {
+  font-size: clamp(5.5rem, 10vw, 9rem);
+  font-weight: 600;
+  letter-spacing: -.075em;
+  text-wrap: balance;
+}
+.kruzhok-tagline {
+  margin-top: 20px;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  line-height: 1.3;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.kruzhok-download {
+  margin-top: 36px;
+  gap: 16px;
+}
+.kruzhok-primary {
+  min-height: 60px;
+  border-radius: 100px;
+  padding-inline: 32px;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+.kruzhok-primary:hover {
+  transform: translateY(-2px);
+}
+.kruzhok-primary:active {
+  transform: translateY(0);
+}
+.kruzhok-secondary {
+  font-size: 15px;
+  text-decoration-color: currentColor;
+}
+.kruzhok-settings {
+  margin-top: 72px;
+}
+.kruzhok-settings h2 {
+  font-size: 28px;
+  letter-spacing: -.045em;
+  margin-bottom: 18px;
+}
+.kruzhok-parameter {
+  border-color: #dedfd8;
+  padding-block: 20px;
+}
+.kruzhok-parameter legend,
+.kruzhok-parameter > label[for] {
+  font-size: 15px;
+}
+.kruzhok-options {
+  gap: 8px;
+}
+.kruzhok-options span {
+  border-color: #dedfd8;
+  border-radius: 999px;
+  padding: 10px 15px;
+  background: transparent;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.kruzhok-options input:checked + span {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.kruzhok-options label:hover input:checked + span {
+  background: #454a39;
+}
+.kruzhok-select select {
+  border-radius: 12px;
+  background: #fff;
+}
+@media (max-width: 1000px) {
+  .kruzhok-intro { padding-top: 28px; }
+  .kruzhok-intro h1 { font-size: clamp(5rem, 17vw, 7rem); }
+  .kruzhok-tagline { font-size: 22px; }
+  .kruzhok-settings { margin-top: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kruzhok-home, .kruzhok-primary, .kruzhok-options span { transition: none; }
+  .kruzhok-primary:hover { transform: none; }
+}
